@@ -30,11 +30,11 @@ import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
-import org.neo4j.rdf.store.AlwaysMiddleStore;
+import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.rdf.store.representation.RepresentationStrategy;
 import org.neo4j.rdf.store.representation.RepresentationExecutor;
-import org.neo4j.rdf.store.representation.standard.AlwaysMiddleNodesStrategy;
-import org.neo4j.rdf.store.representation.standard.AlwaysMiddleExecutor;
+import org.neo4j.rdf.store.representation.standard.VerboseQuadStrategy;
+import org.neo4j.rdf.store.representation.standard.VerboseQuadExecutor;
 import org.neo4j.rdf.store.representation.standard.AbstractUriBasedExecutor;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -49,9 +49,9 @@ public class NeoSailTest extends TestCase {
     public void createTestSail() throws Exception {
         // Note: this services is never shut down
         NeoService neo = new EmbeddedNeo("var/neo");
-        RepresentationExecutor exec = new AlwaysMiddleExecutor(neo, AbstractUriBasedExecutor.newIndex(neo), null);
-        RepresentationStrategy strategy = new AlwaysMiddleNodesStrategy(exec, null);
-        RdfStore store = new AlwaysMiddleStore(neo, null);
+        RepresentationExecutor exec = new VerboseQuadExecutor(neo, AbstractUriBasedExecutor.newIndex(neo), null);
+        RepresentationStrategy strategy = new VerboseQuadStrategy(exec, null);
+        RdfStore store = new VerboseQuadStore(neo, null);
 //        RdfStore store = new RdfStoreImpl(neo, strategy);
 
         sail = new NeoSail(neo, store);
@@ -451,7 +451,7 @@ public class NeoSailTest extends TestCase {
             }
 //            if (l.getLanguage().equals("is")) {
 //                found = true;
-//                assertEquals("?—r", l.getLabel());
+//                assertEquals("?ï¿½r", l.getLabel());
 //            }
         }
         assertTrue(found);

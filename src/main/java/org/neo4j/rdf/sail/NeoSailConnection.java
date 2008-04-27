@@ -1,24 +1,28 @@
 package org.neo4j.rdf.sail;
 
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.SailConnectionListener;
+import info.aduna.iteration.CloseableIteration;
+
+import java.util.LinkedList;
+
+import org.neo4j.api.core.NeoService;
+import org.neo4j.rdf.model.CompleteStatement;
+import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
+import org.neo4j.rdf.store.RdfStore;
+import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.Namespace;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.Dataset;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.query.algebra.evaluation.TripleSource;
-import org.neo4j.rdf.store.RdfStore;
-import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
-import org.neo4j.api.core.NeoService;
-import info.aduna.iteration.CloseableIteration;
+import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
+import org.openrdf.sail.SailConnection;
+import org.openrdf.sail.SailConnectionListener;
+import org.openrdf.sail.SailException;
 
 /**
  * Author: josh
@@ -77,11 +81,28 @@ public class NeoSailConnection implements SailConnection {
                                                                                 final boolean includeInferred,
                                                                                 final Resource... contexts) throws SailException {
         try {
-            org.neo4j.rdf.model.WildcardStatement statement
-                    = SesameNeoMapper.createWildcardStatement(subject, predicate, object, contexts);
-            Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
-
-            return new NeoStatementIteration(iterator.iterator());
+            if ( contexts.length == 0 )
+            {
+                org.neo4j.rdf.model.WildcardStatement statement
+                        = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
+                Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
+                return new NeoStatementIteration(iterator.iterator());
+            }
+            else
+            {
+                LinkedList<CompleteStatement> result = new LinkedList<CompleteStatement>();
+                for ( Resource context : contexts )
+                {
+                    org.neo4j.rdf.model.WildcardStatement statement
+                            = SesameNeoMapper.createWildcardStatement(subject, predicate, object, context);
+                    Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
+                    for ( CompleteStatement resultStatement : iterator )
+                    {
+                        result.add( resultStatement );
+                    }
+                }
+                return new NeoStatementIteration(result.iterator());
+            }
         } catch (RuntimeException e) {
             throw new SailException(e);
         }
@@ -104,10 +125,21 @@ public class NeoSailConnection implements SailConnection {
                              final Value object,
                              final Resource... contexts) throws SailException {
         try {
-            org.neo4j.rdf.model.CompleteStatement statement
-                    = SesameNeoMapper.createCompleteStatement(subject, predicate, object, contexts);
+            if ( contexts.length == 0 )
+            {
+                org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper.createCompleteStatement(subject, predicate, object, (Resource)null);
+                store.addStatements(statement);
+            }
+            else
+            {
+                for ( Resource context : contexts )
+                {
+                    org.neo4j.rdf.model.CompleteStatement statement =
+                        SesameNeoMapper.createCompleteStatement(subject, predicate, object, context);
+                    store.addStatements(statement);
+                }
+            }
 
-            store.addStatements(statement);
         } catch (RuntimeException e) {
             throw new SailException(e);
         }
@@ -118,10 +150,21 @@ public class NeoSailConnection implements SailConnection {
                                  final Value object,
                                  final Resource... contexts) throws SailException {
         try {
-            org.neo4j.rdf.model.WildcardStatement statement
-                    = SesameNeoMapper.createWildcardStatement(subject, predicate, object, contexts);
-
-            store.removeStatements(statement);
+            if ( contexts.length == 0 )
+            {
+                org.neo4j.rdf.model.WildcardStatement statement
+                    = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
+                store.removeStatements(statement);
+            }
+            else
+            {
+                for ( Resource context : contexts )
+                {
+                    org.neo4j.rdf.model.WildcardStatement statement
+                        = SesameNeoMapper.createWildcardStatement(subject, predicate, object, context);
+                    store.removeStatements(statement);
+                }
+            }
         } catch (RuntimeException e) {
             throw new SailException(e);
         }
