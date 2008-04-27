@@ -66,6 +66,8 @@ public class NeoSesameMapper {
         if (contexts.hasNext()) {
             throw new IllegalArgumentException("statement has too many contexts");
         }
+//System.out.println("context = " + context);
+//System.out.println("    actually null?: " + (null == context.getUriAsString()));
 
         return (null == context)
                 ? VALUE_FACTORY.createStatement(createResource(from.getSubject()),
