@@ -13,9 +13,9 @@ import java.util.Iterator;
  * Time: 7:10:31 PM
  */
 public class NeoStatementIteration implements CloseableIteration<Statement, SailException> {
-    private final Iterator<org.neo4j.rdf.model.Statement> iterator;
+    private final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator;
 
-    public NeoStatementIteration(final Iterator<org.neo4j.rdf.model.Statement> iterator) {
+    public NeoStatementIteration(final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator) {
         this.iterator = iterator;
     }
 
@@ -28,7 +28,7 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
     }
 
     public Statement next() throws SailException {
-        org.neo4j.rdf.model.Statement statement = iterator.next();
+        org.neo4j.rdf.model.CompleteStatement statement = iterator.next();
         return (null == statement)
                 // TODO: would be better here if iterator were an Iterator<CompleteStatement>
                 ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);

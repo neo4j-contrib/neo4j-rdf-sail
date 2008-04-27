@@ -79,7 +79,7 @@ public class NeoSailConnection implements SailConnection {
         try {
             org.neo4j.rdf.model.WildcardStatement statement
                     = SesameNeoMapper.createWildcardStatement(subject, predicate, object, contexts);
-            Iterable<org.neo4j.rdf.model.Statement> iterator = store.getStatements(statement, includeInferred);
+            Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
 
             return new NeoStatementIteration(iterator.iterator());
         } catch (RuntimeException e) {

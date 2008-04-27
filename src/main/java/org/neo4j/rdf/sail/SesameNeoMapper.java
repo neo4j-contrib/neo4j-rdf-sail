@@ -54,54 +54,57 @@ public class SesameNeoMapper {
                 ? null : new org.neo4j.rdf.model.Context(resource.toString());
     }
 
+    private static org.neo4j.rdf.model.Value createSingleContext( boolean mustBeOne, final Resource... contexts )
+    {
+        org.neo4j.rdf.model.Value context = null;
+        if ( contexts.length == 0 )
+        {
+            if ( mustBeOne )
+            {
+                throw new IllegalArgumentException( "Must be exactely one context" );
+            }
+            context = new Wildcard( "g" );
+        }
+        else if ( contexts.length == 1 )
+        {
+            context = createContext(contexts[0]);
+        } else {
+            throw new IllegalArgumentException( "Can only have zero or one context" );
+        }
+        return context;
+    }
+
     public static org.neo4j.rdf.model.WildcardStatement createWildcardStatement(final Resource subject,
                                                                                 final URI predicate,
                                                                                 final Value object,
                                                                                 final Resource... inContexts) {
-        org.neo4j.rdf.model.Context[] contexts;
-
-        if (0 < inContexts.length) {
-            contexts = new org.neo4j.rdf.model.Context[inContexts.length];
-            for (int i = 0; i < inContexts.length; i++) {
-                contexts[i] = createContext(inContexts[i]);
-            }
-        } else {
-            contexts = null;
-        }
-
+        org.neo4j.rdf.model.Value context = createSingleContext( false, inContexts );
         return new org.neo4j.rdf.model.WildcardStatement(
                 (null == subject) ? new Wildcard("?s") : createResource(subject),
                 (null == predicate) ? new Wildcard("?p") : createUri(predicate),
                 (null == object) ? new Wildcard("?o") : createValue(object),
-                contexts);
+                context);
     }
 
     public static org.neo4j.rdf.model.CompleteStatement createCompleteStatement(final Resource subject,
                                                                                 final URI predicate,
                                                                                 final Value object,
                                                                                 final Resource... inContexts) {
-        org.neo4j.rdf.model.Context[] contexts;
-        if (0 < inContexts.length) {
-            contexts = new org.neo4j.rdf.model.Context[inContexts.length];
-            for (int i = 0; i < inContexts.length; i++) {
-                contexts[i] = createContext(inContexts[i]);
-            }
-        } else {
-            contexts = null;
-        }
+        org.neo4j.rdf.model.Context context = ( org.neo4j.rdf.model.Context )
+            createSingleContext( true, inContexts );
 
         if (object instanceof Literal) {
             return new org.neo4j.rdf.model.CompleteStatement(
                     createResource(subject),
                     createUri(predicate),
                     (org.neo4j.rdf.model.Literal) createValue(object),
-                    contexts);
+                    context);
         } else {
             return new org.neo4j.rdf.model.CompleteStatement(
                     createResource(subject),
                     createUri(predicate),
                     (org.neo4j.rdf.model.Resource) createValue(object),
-                    contexts);
+                    context);
         }
     }
 

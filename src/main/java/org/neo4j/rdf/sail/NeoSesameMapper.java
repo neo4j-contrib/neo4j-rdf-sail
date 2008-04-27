@@ -1,16 +1,14 @@
 package org.neo4j.rdf.sail;
 
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.URI;
-import org.openrdf.model.Literal;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Value;
-import org.openrdf.model.Resource;
-import org.openrdf.model.impl.ValueFactoryImpl;
 import org.neo4j.rdf.model.Context;
-
-import java.util.Iterator;
+import org.openrdf.model.BNode;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 
 /**
  * Author: josh
@@ -59,13 +57,9 @@ public class NeoSesameMapper {
     }
 
     public static Statement createStatement(final org.neo4j.rdf.model.CompleteStatement from) {
-        Iterator<Context> contexts = from.getContexts().iterator();
-        Context context = contexts.hasNext()
-                ? contexts.next()
-                : null;
-        if (contexts.hasNext()) {
-            throw new IllegalArgumentException("statement has too many contexts");
-        }
+        Context context = from.getContext();
+        if ( context.isWildcard() )
+            throw new IllegalArgumentException("Cannot have wildcard context" );
 //System.out.println("context = " + context);
 //System.out.println("    actually null?: " + (null == context.getUriAsString()));
 
