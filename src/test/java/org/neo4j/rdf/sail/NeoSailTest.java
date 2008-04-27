@@ -13,10 +13,6 @@ import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
-import org.neo4j.rdf.store.representation.RepresentationExecutor;
-import org.neo4j.rdf.store.representation.RepresentationStrategy;
-import org.neo4j.rdf.store.representation.standard.VerboseQuadExecutor;
-import org.neo4j.rdf.store.representation.standard.VerboseQuadStrategy;
 import org.neo4j.util.index.IndexService;
 import org.neo4j.util.index.NeoIndexService;
 import org.openrdf.model.Literal;
@@ -51,10 +47,7 @@ public class NeoSailTest extends TestCase {
         // Note: this services is never shut down
         NeoService neo = new EmbeddedNeo("var/neo");
         IndexService index = new NeoIndexService( neo );
-        RepresentationExecutor exec = new VerboseQuadExecutor(neo, index, null);
-        RepresentationStrategy strategy = new VerboseQuadStrategy(exec, null);
         RdfStore store = new VerboseQuadStore(neo, index, null );
-//        RdfStore store = new RdfStoreImpl(neo, strategy);
 
         sail = new NeoSail(neo, store);
         sail.initialize();
