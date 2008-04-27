@@ -1,46 +1,47 @@
 package org.neo4j.rdf.sail;
 
 import info.aduna.iteration.CloseableIteration;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import junit.framework.TestCase;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.Value;
-import org.openrdf.model.datatypes.XMLDatatypeUtil;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnectionListener;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.query.impl.EmptyBindingSet;
+
 import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
-import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.rdf.store.VerboseQuadStore;
-import org.neo4j.rdf.store.representation.RepresentationStrategy;
 import org.neo4j.rdf.store.representation.RepresentationExecutor;
-import org.neo4j.rdf.store.representation.standard.VerboseQuadStrategy;
+import org.neo4j.rdf.store.representation.RepresentationStrategy;
 import org.neo4j.rdf.store.representation.standard.VerboseQuadExecutor;
-import org.neo4j.rdf.store.representation.standard.AbstractUriBasedExecutor;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import org.neo4j.rdf.store.representation.standard.VerboseQuadStrategy;
+import org.neo4j.util.index.IndexService;
+import org.neo4j.util.index.NeoIndexService;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Namespace;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.datatypes.XMLDatatypeUtil;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.model.vocabulary.XMLSchema;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.impl.EmptyBindingSet;
+import org.openrdf.query.parser.ParsedQuery;
+import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.openrdf.repository.Repository;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailConnection;
+import org.openrdf.sail.SailConnectionListener;
+import org.openrdf.sail.SailException;
 
 public class NeoSailTest extends TestCase {
 
@@ -49,9 +50,10 @@ public class NeoSailTest extends TestCase {
     public void createTestSail() throws Exception {
         // Note: this services is never shut down
         NeoService neo = new EmbeddedNeo("var/neo");
-        RepresentationExecutor exec = new VerboseQuadExecutor(neo, AbstractUriBasedExecutor.newIndex(neo), null);
+        IndexService index = new NeoIndexService( neo );
+        RepresentationExecutor exec = new VerboseQuadExecutor(neo, index, null);
         RepresentationStrategy strategy = new VerboseQuadStrategy(exec, null);
-        RdfStore store = new VerboseQuadStore(neo, null);
+        RdfStore store = new VerboseQuadStore(neo, index, null );
 //        RdfStore store = new RdfStoreImpl(neo, strategy);
 
         sail = new NeoSail(neo, store);
