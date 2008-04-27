@@ -83,13 +83,32 @@ public class NeoSailTest extends TestCase {
     }
 
     public void testGetStatementsS_POG() throws Exception {
-        boolean includeInferred = true;
+        boolean includeInferred = false;
 
         SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/S_POG");
+        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/S_POG#a");
+        URI ctxB = sail.getValueFactory().createURI("http://example.org/test/S_POG#b");
+        URI ctxC = sail.getValueFactory().createURI("http://example.org/test/S_POG#c");
+        URI ctxD = sail.getValueFactory().createURI("http://example.org/test/S_POG#d");
         int before, after;
 
-        // one specific context
+        // default context, different S,P,O
+        asc.removeStatements(ctxA, null, null);
+        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        asc.addStatement(ctxA, ctxB, ctxC);
+        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // one specific context, different S,P,O
+        asc.removeStatements(ctxA, null, null, ctxD);
+        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxD));
+        asc.addStatement(ctxA, ctxB, ctxC, ctxD);
+        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxD));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // one specific context, same S,P,O,G
         asc.removeStatements(ctxA, null, null, ctxA);
         before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
         asc.addStatement(ctxA, ctxA, ctxA, ctxA);
@@ -97,8 +116,8 @@ public class NeoSailTest extends TestCase {
         assertEquals(0, before);
         assertEquals(1, after);
 
-        // null context
-//        asc.removeStatements(ctxA, null, null);
+        // default context, same S,P,O
+        asc.removeStatements(ctxA, null, null);
         before = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
         asc.addStatement(ctxA, ctxA, ctxA);
         after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
@@ -118,25 +137,36 @@ public class NeoSailTest extends TestCase {
         after = countStatements(asc.getStatements(ctxA, ctxA, null, false));
         assertEquals(0, before);
         assertEquals(1, after);
-    }                   
+    }
 
     public void testGetStatementsO_SPG() throws Exception {
         SailConnection asc = sail.getConnection();
         URI ctxA = sail.getValueFactory().createURI("http://example.org/test/O_SPG");
+        Literal plainLitA = sail.getValueFactory().createLiteral("arbitrary plain literal 9548734867");
         int before, after;
 
-        // Add statement to the implicit null context.
-//        asc.removeStatements(null, null, null, ctxA);
+        // Add statement to a specific context.
+        asc.removeStatements(null, null, ctxA, ctxA);
         before = countStatements(asc.getStatements(null, null, ctxA, false));
         asc.addStatement(ctxA, ctxA, ctxA);
         after = countStatements(asc.getStatements(null, null, ctxA, false));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // Add literal statement to the default context.
+        asc.removeStatements(null, null, plainLitA);
+        before = countStatements(asc.getStatements(null, null, plainLitA, false));
+        asc.addStatement(ctxA, ctxA, plainLitA);
+        after = countStatements(asc.getStatements(null, null, plainLitA, false));
         assertEquals(0, before);
         assertEquals(1, after);
     }
 
     public void testGetStatementsPO_SG() throws Exception {
         SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/PO_SG");
+        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/PO_SG#a");
+        URI ctxB = sail.getValueFactory().createURI("http://example.org/test/PO_SG#b");
+        Literal plainLitA = sail.getValueFactory().createLiteral("arbitrary plain literal 8765675");
         int before, after;
 
         // Add statement to the implicit null context.
@@ -146,50 +176,64 @@ public class NeoSailTest extends TestCase {
         after = countStatements(asc.getStatements(null, ctxA, ctxA, false));
         assertEquals(0, before);
         assertEquals(1, after);
-    }
 
-    public void testGetStatementsSPO_G() throws Exception {
-
-    }
-
-    public void testAddStatementsSimple() throws Exception {
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
-        int before, after;
-
-        /*
-        // Add statement to a specific context.
-//        asc.removeStatements(null, null, null, ctxA);
-        before = countStatements(asc.getStatements(null, null, null, false, ctxA));
-        asc.addStatement(ctxA, ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(null, null, null, false, ctxA));
-        assertEquals(0, before);
-        assertEquals(1, after);*/
-
-
-
-        // Add statement to the explicit null context.
-//        asc.removeStatements(ctxA, ctxA, ctxA);
-        before = countStatements(asc.getStatements(ctxA, ctxA, ctxA, false));
-        asc.addStatement(ctxA, ctxA, ctxA, (Resource) null);
-        after = countStatements(asc.getStatements(ctxA, ctxA, ctxA, false));
+        // Add literal statement to the default context.
+        asc.removeStatements(null, null, plainLitA);
+        before = countStatements(asc.getStatements(null, ctxA, plainLitA, false));
+        asc.addStatement(ctxA, ctxA, plainLitA);
+        asc.addStatement(ctxA, ctxB, plainLitA);
+        asc.addStatement(ctxB, ctxB, plainLitA);
+        after = countStatements(asc.getStatements(null, ctxA, plainLitA, false));
         assertEquals(0, before);
         assertEquals(1, after);
-
-        // Add statement to both a named context and the null context.
-        Resource[] contexts = {ctxA, null};
-//        asc.removeStatements(ctxA, ctxA, ctxA);
-        before = countStatements(asc.getStatements(ctxA, ctxA, ctxA, false));
-        asc.addStatement(ctxA, ctxA, ctxA, contexts);
-        after = countStatements(asc.getStatements(ctxA, ctxA, ctxA, false));
-        assertEquals(0, before);
-        assertEquals(2, after);
-
-        asc.close();
     }
 
     /*
-    public void testCreateLiteral() throws Exception {
+    public void testGetStatementsSPO_G() throws Exception {
+        boolean includeInferred = false;
+
+        SailConnection asc = sail.getConnection();
+        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/S_POG#a");
+        URI ctxB = sail.getValueFactory().createURI("http://example.org/test/S_POG#b");
+        URI ctxC = sail.getValueFactory().createURI("http://example.org/test/S_POG#c");
+        URI ctxD = sail.getValueFactory().createURI("http://example.org/test/S_POG#d");
+        int before, after;
+
+        // default context, different S,P,O
+        asc.removeStatements(ctxA, null, null);
+        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        asc.addStatement(ctxA, ctxB, ctxC);
+        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // one specific context, different S,P,O
+        asc.removeStatements(ctxA, null, null, ctxD);
+        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxD));
+        asc.addStatement(ctxA, ctxB, ctxC, ctxD);
+        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxD));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // one specific context, same S,P,O,G
+        asc.removeStatements(ctxA, null, null, ctxA);
+        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
+        asc.addStatement(ctxA, ctxA, ctxA, ctxA);
+        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // default context, different S,P,O
+        asc.removeStatements(ctxA, null, null);
+        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        asc.addStatement(ctxA, ctxA, ctxA);
+        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        assertEquals(0, before);
+        assertEquals(1, after);
+    }    */
+
+    // Note: this test will always pass as long as we're using ValueFactoryImpl
+    public void testCreateLiteralsThroughValueFactory() throws Exception {
         Literal l;
         ValueFactory vf = sail.getValueFactory();
 
@@ -248,7 +292,13 @@ public class NeoSailTest extends TestCase {
         assertEquals("2002-10-10T12:00:00-05:00", l.getLabel());
         assertEquals(calendar, l.calendarValue());
         assertEquals(XMLSchema.DATETIME, l.getDatatype());
+    }
 
+    /*
+    public void testGetLiteralsFromTripleStore() throws Exception {
+        Literal l;
+        XMLGregorianCalendar calendar;
+        ValueFactory vf = sail.getValueFactory();
         SailConnection sc = sail.getConnection();
 
         // Get an actual plain literal from the triple store.
@@ -259,8 +309,10 @@ public class NeoSailTest extends TestCase {
         assertEquals("he really knows where his towel is", l.getLabel());
         assertNull(l.getDatatype());
 
-        // Get an actual language-tagged literal from the triple store.
         URI thor = vf.createURI("urn:org.neo4j.rdf.sail.test/thor");
+
+        // FIXME: restore this test when support for language tags has been added
+        // Get an actual language-tagged literal from the triple store.
         URI foafName = vf.createURI("http://xmlns.com/foaf/0.1/name");
         Iterator<Statement> iter = toSet(sc.getStatements(thor, foafName, null, false)).iterator();
         boolean found = false;
@@ -354,7 +406,7 @@ public class NeoSailTest extends TestCase {
         assertEquals(calendar, l.calendarValue());
 
         sc.close();
-    }*/
+    }  */
 
     public void testBlankNodes() throws Exception {
         System.out.println("who needs blank nodes?");
@@ -488,10 +540,9 @@ public class NeoSailTest extends TestCase {
         asc.close();
     }*/
 
-    public void testGetStatements() throws Exception {
+    public void testGetStatementsWithVariableContexts() throws Exception {
         SailConnection asc = sail.getConnection();
         URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
-        CloseableIteration<? extends Statement, SailException> statements;
         boolean includeInferred = false;
         int count;
 

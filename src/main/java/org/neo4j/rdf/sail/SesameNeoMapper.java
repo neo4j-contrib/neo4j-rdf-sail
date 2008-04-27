@@ -50,7 +50,8 @@ public class SesameNeoMapper {
 
     public static org.neo4j.rdf.model.Context createContext(final Resource resource) {
         // TODO: handle BNode contexts (their String representation is probably not what you want)
-        return new org.neo4j.rdf.model.Context(resource.toString());
+        return (null == resource)
+                ? null : new org.neo4j.rdf.model.Context(resource.toString());
     }
 
     public static org.neo4j.rdf.model.WildcardStatement createWildcardStatement(final Resource subject,
