@@ -1,30 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project>
-	<parent>
-		<groupId>org.neo4j</groupId>
-		<artifactId>parent-pom</artifactId>
-		<version>1</version>
-		<relativePath>../../../pom.xml</relativePath>    		
-	</parent>
+    <parent>
+        <groupId>org.neo4j</groupId>
+        <artifactId>parent-pom</artifactId>
+        <version>1</version>
+        <relativePath>../../../pom.xml</relativePath>
+    </parent>
 
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.neo4j</groupId>
-	<artifactId>neo-rdf-sail</artifactId>
-	<version>0.1-SNAPSHOT</version>
-	<name>Neo RDF SAIL</name>
-	<description>A Neo RDF Sesame Storage and Inference Layer</description>
-	
-	<dependencies>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo</artifactId>
-			<version>1.0-rc1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.neo4j</groupId>
-			<artifactId>neo-rdf</artifactId>
-			<version>0.2-SNAPSHOT</version>
-		</dependency>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo-rdf-sail</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <name>Neo RDF SAIL</name>
+    <description>A Neo RDF Sesame Storage and Inference Layer</description>
+
+    <repositories>
+        <repository>
+            <id>aduna-repo</id>
+            <name>Aduna repository</name>
+            <url>http://repository.aduna-software.org/maven2</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo</artifactId>
+            <version>1.0-rc1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo-rdf</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>org.openrdf</groupId>
             <artifactId>openrdf-model</artifactId>
@@ -36,20 +44,20 @@
             <version>2.0</version>
         </dependency>
         <dependency>
-			<groupId>org.openrdf</groupId>
-			<artifactId>openrdf-queryalgebra-evaluation</artifactId>
-			<version>2.0</version>
-		</dependency>
+            <groupId>org.openrdf</groupId>
+            <artifactId>openrdf-queryalgebra-evaluation</artifactId>
+            <version>2.0</version>
+        </dependency>
         <dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.0.1</version>
-		</dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.0.1</version>
+        </dependency>
         <dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
-		</dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+        </dependency>
         <!-- test dependencies -->
         <dependency>
             <groupId>org.openrdf</groupId>
@@ -58,22 +66,22 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-			<groupId>org.openrdf</groupId>
-			<artifactId>openrdf-repository-sail</artifactId>
-			<version>2.0</version>
+            <groupId>org.openrdf</groupId>
+            <artifactId>openrdf-repository-sail</artifactId>
+            <version>2.0</version>
             <scope>test</scope>
-		</dependency>
+        </dependency>
         <dependency>
-			<groupId>org.openrdf</groupId>
-			<artifactId>openrdf-queryparser-sparql</artifactId>
-			<version>2.0</version>
+            <groupId>org.openrdf</groupId>
+            <artifactId>openrdf-queryparser-sparql</artifactId>
+            <version>2.0</version>
             <scope>test</scope>
-		</dependency>
+        </dependency>
         <dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.1</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

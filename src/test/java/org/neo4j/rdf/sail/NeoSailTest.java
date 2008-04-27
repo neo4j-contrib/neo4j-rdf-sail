@@ -90,7 +90,7 @@ public class NeoSailTest extends TestCase {
         int before, after;
 
         // one specific context
-//        asc.removeStatements(ctxA, null, null, ctxA);
+        asc.removeStatements(ctxA, null, null, ctxA);
         before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
         asc.addStatement(ctxA, ctxA, ctxA, ctxA);
         after = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
