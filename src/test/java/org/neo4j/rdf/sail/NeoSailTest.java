@@ -7,16 +7,11 @@ import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import junit.framework.TestCase;
-
-import org.neo4j.api.core.EmbeddedNeo;
-import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
 import org.neo4j.util.index.NeoIndexService;
 import org.openrdf.model.Literal;
-import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -39,44 +34,57 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
-public class NeoSailTest extends TestCase {
+public class NeoSailTest extends NeoTestCase {
+    private Sail sail = null;
+    private RdfStore store = null;
 
-    private static Sail sail;
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        createStoreIfNeeded();
+        createSail();
+    }
+    
+    @Override
+    protected void tearDown() throws Exception {
+        tearDownStoreIfNeeded();
+        deleteEntireNodeSpace();
+        super.tearDown();
+    }
 
-    public void createTestSail() throws Exception {
-        // Note: this services is never shut down
-        NeoService neo = new EmbeddedNeo("var/neo");
-        IndexService index = new NeoIndexService( neo );
-        RdfStore store = new VerboseQuadStore(neo, index, null );
+    private void createStoreIfNeeded() {
+        if ( store() == null )
+        {
+            this.store = new VerboseQuadStore( neo(), indexService(), null );
+        }
+    }
 
-        sail = new NeoSail(neo, store);
+    private void tearDownStoreIfNeeded() {
+        if ( store() != null )
+        {
+            this.store = null;
+        }
+    }
+
+    protected RdfStore store()  {
+        return this.store;
+    }
+
+    @Override
+    protected IndexService instantiateIndexService()  {
+        return new NeoIndexService( neo() );
+    }
+
+    private void createSail() throws Exception {
+        sail = new NeoSail( neo(), store() );
         sail.initialize();
-
-        /*
-        // Remove previous test data.
-        URI ctx1 = sail.getValueFactory().createURI("urn:org.neo4j.rdf.sail.test/ctx1");
-        SailConnection sc = sail.getConnection();
-        sc.removeStatements(null, null, null, ctx1);
-        sc.commit();
-        sc.close();
-        */
-
-        // Add test data.
         Repository repo = new SailRepository(sail);
         RepositoryConnection rc = repo.getConnection();
         rc.add(NeoSailTest.class.getResource("neoSailTest.trig"), "", RDFFormat.TRIG);
         rc.commit();
         rc.close();
     }
-
-    public NeoSailTest(final String name) throws Exception {
-        super(name);
-
-        if (null == sail) {
-            createTestSail();
-        }
-    }
-
+   
     // statement manipulation //////////////////////////////////////////////////
 
     public void testGetStatementsS_POG() throws Exception {
@@ -779,7 +787,7 @@ public class NeoSailTest extends TestCase {
 
     // namespaces //////////////////////////////////////////////////////////////
 
-    //*
+    /*
     public void testClearNamespaces() throws Exception {
         SailConnection asc = sail.getConnection();
         CloseableIteration<? extends Namespace, SailException> namespaces;
@@ -918,7 +926,7 @@ public class NeoSailTest extends TestCase {
 
         asc.close();
     }
-    //*/
+    */
 
     // TODO: concurrency testing ///////////////////////////////////////////////
 
