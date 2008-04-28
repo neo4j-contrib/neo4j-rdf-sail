@@ -119,6 +119,7 @@ public class NeoSailConnection implements SailConnection
                                                                                 final Value object,
                                                                                 final boolean includeInferred,
                                                                                 final Resource... contexts) throws SailException {
+        ensureOpenTransaction();
 //System.out.println("getStatements(" + subject + ", " + predicate + ", " + object + ", " + includeInferred + ", " + contexts );
         try {
             if (contexts.length == 0) {
@@ -288,6 +289,8 @@ public class NeoSailConnection implements SailConnection
 
     public synchronized void rollback() throws SailException
     {
+        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
+            writeOperationCount.get() + " op count" );        
         if ( openTransaction() )
         {
             tx().finish();
