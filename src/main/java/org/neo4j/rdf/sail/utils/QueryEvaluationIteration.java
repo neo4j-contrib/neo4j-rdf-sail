@@ -5,13 +5,6 @@ import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.sail.SailException;
 
-/**
- * Created by IntelliJ IDEA.
- * User: josh
- * Date: Nov 26, 2007
- * Time: 11:05:52 AM
- * To change this template use File | Settings | File Templates.
- */
 public class QueryEvaluationIteration implements CloseableIteration<Statement, QueryEvaluationException> {
     private CloseableIteration<? extends Statement, SailException> baseIteration;
 

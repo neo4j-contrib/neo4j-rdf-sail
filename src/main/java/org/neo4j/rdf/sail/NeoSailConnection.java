@@ -117,8 +117,14 @@ public class NeoSailConnection implements SailConnection
     public CloseableIteration<? extends Statement, SailException> getStatements(final Resource subject,
                                                                                 final URI predicate,
                                                                                 final Value object,
-                                                                                final boolean includeInferred,
+                                                                                boolean includeInferred,
                                                                                 final Resource... contexts) throws SailException {
+        if (includeInferred) {
+            // TODO: change this to a warning
+            System.err.println("Warning: inference is not yet supported");
+            includeInferred = false;
+        }
+
         ensureOpenTransaction();
 //System.out.println("getStatements(" + subject + ", " + predicate + ", " + object + ", " + includeInferred + ", " + contexts );
         try {

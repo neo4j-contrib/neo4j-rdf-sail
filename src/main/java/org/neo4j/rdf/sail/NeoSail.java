@@ -28,6 +28,7 @@ public class NeoSail implements Sail {
     private final Set<SailChangedListener> listeners = new HashSet<SailChangedListener>();
 
     public NeoSail(final NeoService neo, final RdfStore store) {
+//System.out.println("we're creating a NeoSail: " + neo + ", " + store);
         this.neo = neo;
         this.store = store;
     }

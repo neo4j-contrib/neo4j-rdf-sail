@@ -54,7 +54,7 @@ public class SesameNeoMapper {
                                                                                 final Value object,
                                                                                 final Resource... inContexts) {
         org.neo4j.rdf.model.Value context =
-            ContextHandling.createSingleContext( false, inContexts );
+                ContextHandling.createSingleContext(false, inContexts);
         return new org.neo4j.rdf.model.WildcardStatement(
                 (null == subject) ? new Wildcard("?s") : createResource(subject),
                 (null == predicate) ? new Wildcard("?p") : createUri(predicate),
@@ -66,8 +66,8 @@ public class SesameNeoMapper {
                                                                                 final URI predicate,
                                                                                 final Value object,
                                                                                 final Resource... inContexts) {
-        org.neo4j.rdf.model.Context context = ( org.neo4j.rdf.model.Context )
-            ContextHandling.createSingleContext( true, inContexts );
+        org.neo4j.rdf.model.Context context = (org.neo4j.rdf.model.Context)
+                ContextHandling.createSingleContext(true, inContexts);
 
         if (object instanceof Literal) {
             return new org.neo4j.rdf.model.CompleteStatement(
@@ -85,7 +85,7 @@ public class SesameNeoMapper {
     }
 
     public static org.neo4j.rdf.model.Statement createCompleteStatement(final Statement st) {
-        org.neo4j.rdf.model.Context context = ContextHandling.createContext( st.getContext() );
+        org.neo4j.rdf.model.Context context = ContextHandling.createContext(st.getContext());
         if (st.getObject() instanceof Literal) {
             return new org.neo4j.rdf.model.CompleteStatement(
                     createResource(st.getSubject()),

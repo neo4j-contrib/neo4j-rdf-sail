@@ -22,7 +22,7 @@ public class NeoSesameMapper {
     public static Literal createLiteral(final org.neo4j.rdf.model.Literal from) {
         return (null == from.getDatatype())
                 ? (null == from.getLanguage())
-                        // FIXME: casting to String may not be safe
+                // FIXME: casting to String may not be safe
                         ? VALUE_FACTORY.createLiteral((String) from.getValue())
                         : VALUE_FACTORY.createLiteral((String) from.getValue(), from.getLanguage())
                 : VALUE_FACTORY.createLiteral((String) from.getValue(), createUri(from.getDatatype()));
@@ -58,8 +58,9 @@ public class NeoSesameMapper {
 
     public static Statement createStatement(final org.neo4j.rdf.model.CompleteStatement from) {
         Context context = from.getContext();
-        if ( context.isWildcard() )
-            throw new IllegalArgumentException("Cannot have wildcard context" );
+        if (context.isWildcard()) {
+            throw new IllegalArgumentException("Cannot have wildcard context");
+        }
 //System.out.println("context = " + context);
 //System.out.println("    actually null?: " + (null == context.getUriAsString()));
 

@@ -11,13 +11,6 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
 import org.openrdf.model.URI;
 
-/**
- * Created by IntelliJ IDEA.
- * User: josh
- * Date: Nov 26, 2007
- * Time: 10:59:38 AM
- * To change this template use File | Settings | File Templates.
- */
 public class SailConnectionTripleSource implements TripleSource {
     private SailConnection baseConnection;
     private ValueFactory valueFactory;

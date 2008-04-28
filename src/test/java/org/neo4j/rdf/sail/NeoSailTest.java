@@ -129,102 +129,117 @@ public class NeoSailTest extends NeoTestCase {
     public void testGetStatementsS_POG() throws Exception {
         boolean includeInferred = false;
 
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/S_POG#a");
-        URI ctxB = sail.getValueFactory().createURI("http://example.org/test/S_POG#b");
-        URI ctxC = sail.getValueFactory().createURI("http://example.org/test/S_POG#c");
-        URI ctxD = sail.getValueFactory().createURI("http://example.org/test/S_POG#d");
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/S_POG#a");
+        URI uriB = sail.getValueFactory().createURI("http://example.org/test/S_POG#b");
+        URI uriC = sail.getValueFactory().createURI("http://example.org/test/S_POG#c");
+        URI uriD = sail.getValueFactory().createURI("http://example.org/test/S_POG#d");
         int before, after;
 
         // default context, different S,P,O
-        asc.removeStatements(ctxA, null, null);
-        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
-        asc.addStatement(ctxA, ctxB, ctxC);
-        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        sc.addStatement(uriA, uriB, uriC);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // one specific context, different S,P,O
-        asc.removeStatements(ctxA, null, null, ctxD);
-        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxD));
-        asc.addStatement(ctxA, ctxB, ctxC, ctxD);
-        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxD));
+        sc.removeStatements(uriA, null, null, uriD);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, null, null, includeInferred, uriD));
+        sc.addStatement(uriA, uriB, uriC, uriD);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, null, null, includeInferred, uriD));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // one specific context, same S,P,O,G
-        asc.removeStatements(ctxA, null, null, ctxA);
-        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
-        asc.addStatement(ctxA, ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
+        sc.removeStatements(uriA, null, null, uriA);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, null, null, includeInferred, uriA));
+        sc.addStatement(uriA, uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, null, null, includeInferred, uriA));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // default context, same S,P,O
-        asc.removeStatements(ctxA, null, null);
-        before = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
-        asc.addStatement(ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        sc.addStatement(uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, before);
         assertEquals(1, after);
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetStatementsSP_OG() throws Exception {
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/SP_OG");
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/SP_OG");
         int before, after;
 
         // Add statement to the implicit null context.
-//        asc.removeStatements(null, null, null, ctxA);
-        before = countStatements(asc.getStatements(ctxA, ctxA, null, false));
-        asc.addStatement(ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(ctxA, ctxA, null, false));
+//        sc.removeStatements(null, null, null, uriA);
+        before = countStatements(sc.getStatements(uriA, uriA, null, false));
+        sc.addStatement(uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, uriA, null, false));
         assertEquals(0, before);
         assertEquals(1, after);
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetStatementsO_SPG() throws Exception {
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/O_SPG");
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/O_SPG");
         Literal plainLitA = sail.getValueFactory().createLiteral("arbitrary plain literal 9548734867");
         Literal stringLitA = sail.getValueFactory().createLiteral("arbitrary string literal 8765", XMLSchema.STRING);
         int before, after;
 
         // Add statement to a specific context.
-        asc.removeStatements(null, null, ctxA, ctxA);
-        before = countStatements(asc.getStatements(null, null, ctxA, false));
-        asc.addStatement(ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(null, null, ctxA, false));
+        sc.removeStatements(null, null, uriA, uriA);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, null, uriA, false));
+        sc.addStatement(uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, null, uriA, false));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // Add plain literal statement to the default context.
-        asc.removeStatements(null, null, plainLitA);
-        before = countStatements(asc.getStatements(null, null, plainLitA, false));
-        asc.addStatement(ctxA, ctxA, plainLitA);
-        after = countStatements(asc.getStatements(null, null, plainLitA, false));
+        sc.removeStatements(null, null, plainLitA);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, null, plainLitA, false));
+        sc.addStatement(uriA, uriA, plainLitA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, null, plainLitA, false));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // Add string-typed literal statement to the default context.
-        asc.removeStatements(null, null, plainLitA);
-        before = countStatements(asc.getStatements(null, null, stringLitA, false));
-        asc.addStatement(ctxA, ctxA, stringLitA);
-        after = countStatements(asc.getStatements(null, null, stringLitA, false));
+        sc.removeStatements(null, null, plainLitA);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, null, stringLitA, false));
+        sc.addStatement(uriA, uriA, stringLitA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, null, stringLitA, false));
         assertEquals(0, before);
         assertEquals(1, after);
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetStatementsPO_SG() throws Exception {
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/PO_SG#a");
-        URI ctxB = sail.getValueFactory().createURI("http://example.org/test/PO_SG#b");
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/PO_SG#a");
+        URI uriB = sail.getValueFactory().createURI("http://example.org/test/PO_SG#b");
         URI marko = sail.getValueFactory().createURI("http://knowledgereefsystems.com/thing/q");
         URI firstName = sail.getValueFactory().createURI("http://knowledgereefsystems.com/2007/11/core#firstName");
         Literal plainLitA = sail.getValueFactory().createLiteral("arbitrary plain literal 8765675");
@@ -232,183 +247,211 @@ public class NeoSailTest extends NeoTestCase {
         int before, after;
 
         // Add statement to the implicit null context.
-        asc.removeStatements(null, null, null, ctxA);
-        before = countStatements(asc.getStatements(null, ctxA, ctxA, false));
-        asc.addStatement(ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(null, ctxA, ctxA, false));
+        sc.removeStatements(null, null, null, uriA);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, uriA, uriA, false));
+        sc.addStatement(uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, uriA, uriA, false));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // Add plain literal statement to the default context.
-        asc.removeStatements(null, null, plainLitA);
-        before = countStatements(asc.getStatements(null, ctxA, plainLitA, false));
-        asc.addStatement(ctxA, ctxA, plainLitA);
-        asc.addStatement(ctxA, ctxB, plainLitA);
-        asc.addStatement(ctxB, ctxB, plainLitA);
-        after = countStatements(asc.getStatements(null, ctxA, plainLitA, false));
+        sc.removeStatements(null, null, plainLitA);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, uriA, plainLitA, false));
+        sc.addStatement(uriA, uriA, plainLitA);
+        sc.addStatement(uriA, uriB, plainLitA);
+        sc.addStatement(uriB, uriB, plainLitA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, uriA, plainLitA, false));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // Add string-typed literal statement to the default context.
-        asc.removeStatements(null, null, markoName);
-        before = countStatements(asc.getStatements(null, firstName, markoName, false));
-        asc.addStatement(marko, firstName, markoName);
-        after = countStatements(asc.getStatements(null, firstName, markoName, false));
+        sc.removeStatements(null, null, markoName);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, firstName, markoName, false));
+        sc.addStatement(marko, firstName, markoName);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, firstName, markoName, false));
         assertEquals(0, before);
         assertEquals(1, after);
-        assertEquals(marko, toSet(asc.getStatements(null, firstName, markoName, false)).iterator().next().getSubject());
+        assertEquals(marko, toSet(sc.getStatements(null, firstName, markoName, false)).iterator().next().getSubject());
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetStatementsSPO_G() throws Exception {
         boolean includeInferred = false;
 
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/test/S_POG#a");
-        URI ctxB = sail.getValueFactory().createURI("http://example.org/test/S_POG#b");
-        URI ctxC = sail.getValueFactory().createURI("http://example.org/test/S_POG#c");
-        URI ctxD = sail.getValueFactory().createURI("http://example.org/test/S_POG#d");
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/S_POG#a");
+        URI uriB = sail.getValueFactory().createURI("http://example.org/test/S_POG#b");
+        URI uriC = sail.getValueFactory().createURI("http://example.org/test/S_POG#c");
+        URI uriD = sail.getValueFactory().createURI("http://example.org/test/S_POG#d");
         int before, after;
 
 
         // default context, different S,P,O
-        asc.removeStatements(ctxA, null, null);
-        before = countStatements(asc.getStatements(ctxA, ctxB, ctxC, includeInferred));
-        asc.addStatement(ctxA, ctxB, ctxC);
-        after = countStatements(asc.getStatements(ctxA, ctxB, ctxC, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, uriB, uriC, includeInferred));
+        sc.addStatement(uriA, uriB, uriC);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, uriB, uriC, includeInferred));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // TODO: this should pass
         /*
         // default context, same S,P,O
-        asc.removeStatements(ctxA, null, null);
-        before = countStatements(asc.getStatements(ctxA, ctxA, ctxA, includeInferred));
-        asc.addStatement(ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(ctxA, ctxA, ctxA, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, uriA, uriA, includeInferred));
+        sc.addStatement(uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, uriA, uriA, includeInferred));
         assertEquals(0, before);
         assertEquals(1, after);
         //*/
 
         // one specific context, different S,P,O
-        asc.removeStatements(ctxA, null, null, ctxD);
-        before = countStatements(asc.getStatements(ctxA, ctxB, ctxC, includeInferred, ctxD));
-        asc.addStatement(ctxA, ctxB, ctxC, ctxD);
-        after = countStatements(asc.getStatements(ctxA, ctxB, ctxC, includeInferred, ctxD));
+        sc.removeStatements(uriA, null, null, uriD);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, uriB, uriC, includeInferred, uriD));
+        sc.addStatement(uriA, uriB, uriC, uriD);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, uriB, uriC, includeInferred, uriD));
         assertEquals(0, before);
         assertEquals(1, after);
 
         // one specific context, same S,P,O,G
-        asc.removeStatements(ctxA, null, null, ctxA);
-        before = countStatements(asc.getStatements(ctxA, ctxA, ctxA, includeInferred, ctxA));
-        asc.addStatement(ctxA, ctxA, ctxA, ctxA);
-        after = countStatements(asc.getStatements(ctxA, ctxA, ctxA, includeInferred, ctxA));
+        sc.removeStatements(uriA, null, null, uriA);
+        sc.commit();
+        before = countStatements(sc.getStatements(uriA, uriA, uriA, includeInferred, uriA));
+        sc.addStatement(uriA, uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(uriA, uriA, uriA, includeInferred, uriA));
         assertEquals(0, before);
         assertEquals(1, after);
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetStatementsWithVariableContexts() throws Exception {
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
         boolean includeInferred = false;
         int count;
 
-        asc.removeStatements(ctxA, ctxA, ctxA);
-        Resource[] contexts = {ctxA, null};
-        asc.addStatement(ctxA, ctxA, ctxA, contexts);
+        sc.removeStatements(uriA, uriA, uriA);
+        sc.commit();
+        Resource[] contexts = {uriA, null};
+        sc.addStatement(uriA, uriA, uriA, contexts);
+        sc.commit();
 
         // Get statements from all contexts.
         count = countStatements(
-                asc.getStatements(ctxA, null, null, includeInferred));
+                sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(2, count);
 
         // Get statements from a specific named context.
         count = countStatements(
-                asc.getStatements(null, null, null, includeInferred, ctxA));
+                sc.getStatements(null, null, null, includeInferred, uriA));
         assertEquals(1, count);
 
         // Get statements from the null context.
         Resource[] c = {null};
         count = countStatements(
-                asc.getStatements(null, null, null, includeInferred, c));
+                sc.getStatements(null, null, null, includeInferred, c));
         assertTrue(count > 0);
         int countLast = count;
 
         // Get statements from more than one context.
         count = countStatements(
-                asc.getStatements(null, null, null, includeInferred, contexts));
+                sc.getStatements(null, null, null, includeInferred, contexts));
         assertEquals(1 + countLast, count);
 
         // Test inference
         // TODO: inference not supported right now
 //        URI instance1 = sail.getValueFactory().createURI("urn:org.neo4j.rdf.sail.test/instance1");
 //        count = countStatements(
-//                asc.getStatements(instance1, RDF.TYPE, null, false));
+//                sc.getStatements(instance1, RDF.TYPE, null, false));
 //        assertEquals(1, count);
 //        count = countStatements(
-//                asc.getStatements(instance1, RDF.TYPE, null, true));
+//                sc.getStatements(instance1, RDF.TYPE, null, true));
 //        assertEquals(2, count);
 
-        asc.close();
+        sc.close();
     }
 
     public void testRemoveStatements() throws Exception {
-        SailConnection asc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
-        Resource[] contexts = {ctxA, null};
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
+        Resource[] contexts = {uriA, null};
         boolean includeInferred = false;
         int count;
 
         // Remove from all contexts.
-        asc.removeStatements(ctxA, null, null);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, count);
-        asc.addStatement(ctxA, ctxA, ctxA, contexts);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.addStatement(uriA, uriA, uriA, contexts);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(2, count);
-        asc.removeStatements(ctxA, null, null);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, count);
 
         // Remove from one named context.
-        asc.removeStatements(ctxA, null, null);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, count);
-        asc.addStatement(ctxA, ctxA, ctxA, contexts);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.addStatement(uriA, uriA, uriA, contexts);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(2, count);
-        Resource[] oneContext = {ctxA};
-        asc.removeStatements(ctxA, null, null, oneContext);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        Resource[] oneContext = {uriA};
+        sc.removeStatements(uriA, null, null, oneContext);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(1, count);
 
         // Remove from the null context.
-        asc.removeStatements(ctxA, null, null);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, count);
-        asc.addStatement(ctxA, ctxA, ctxA, contexts);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.addStatement(uriA, uriA, uriA, contexts);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(2, count);
         Resource[] nullContext = {null};
-        asc.removeStatements(ctxA, null, null, nullContext);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null, nullContext);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(1, count);
 
         // Remove from more than one context.
-        asc.removeStatements(ctxA, null, null);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(0, count);
-        asc.addStatement(ctxA, ctxA, ctxA, contexts);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
+        sc.addStatement(uriA, uriA, uriA, contexts);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
         assertEquals(2, count);
-        asc.removeStatements(ctxA, null, null);
-        count = countStatements(asc.getStatements(ctxA, null, null, includeInferred, contexts));
+        sc.removeStatements(uriA, null, null);
+        sc.commit();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred, contexts));
         assertEquals(0, count);
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetContextIDs() throws Exception {
@@ -624,8 +667,8 @@ public class NeoSailTest extends NeoTestCase {
     public void testEvaluate() throws Exception {
         Set<String> languages;
         SailConnection sc = sail.getConnection();
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
-        sc.addStatement(ctxA, ctxA, ctxA);
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
+        sc.addStatement(uriA, uriA, uriA);
         sc.commit();
 
         SPARQLParser parser = new SPARQLParser();
@@ -637,7 +680,7 @@ public class NeoSailTest extends NeoTestCase {
         int count;
 
         // s ?p ?o SELECT
-        queryStr = "SELECT ?y ?z WHERE { <http://example.org/ctxA> ?y ?z }";
+        queryStr = "SELECT ?y ?z WHERE { <http://example.org/uriA> ?y ?z }";
         query = parser.parseQuery(queryStr, baseURI);
         results = sc.evaluate(query.getTupleExpr(), query.getDataset(), bindings, false);
         count = 0;
@@ -857,11 +900,13 @@ public class NeoSailTest extends NeoTestCase {
         SailConnection sc = sail.getConnection();
         sc.addConnectionListener(listener1);
 
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
 
-        sc.removeStatements(null, null, null, ctxA);
+        sc.removeStatements(null, null, null, uriA);
+        sc.commit();
         sc.addConnectionListener(listener2);
-        sc.addStatement(ctxA, ctxA, ctxA, ctxA);
+        sc.addStatement(uriA, uriA, uriA, uriA);
+        sc.commit();
 
         // TODO: listening on removal is not yet supported
 //        assertEquals(1, listener1.getRemoved());
@@ -884,11 +929,12 @@ public class NeoSailTest extends NeoTestCase {
 
         sail().addSailChangedListener(listener);
 
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
         SailConnection sc = sail.getConnection();
 
         assertEquals(0, events.size());
-        sc.addStatement(ctxA, ctxA, ctxA, ctxA);
+        sc.addStatement(uriA, uriA, uriA, uriA);
+        sc.commit();
         assertEquals(1, events.size());
         SailChangedEvent event = events.iterator().next();
         assertTrue(event.statementsAdded());
@@ -896,7 +942,8 @@ public class NeoSailTest extends NeoTestCase {
 
         events.clear();
         assertEquals(0, events.size());
-        sc.removeStatements(ctxA, ctxA, ctxA, ctxA);
+        sc.removeStatements(uriA, uriA, uriA, uriA);
+        sc.commit();
         assertEquals(1, events.size());
         event = events.iterator().next();
         assertFalse(event.statementsAdded());
@@ -908,12 +955,12 @@ public class NeoSailTest extends NeoTestCase {
     // namespaces //////////////////////////////////////////////////////////////
 
     public void testClearNamespaces() throws Exception {
-        SailConnection asc = sail.getConnection();
+        SailConnection sc = sail.getConnection();
         CloseableIteration<? extends Namespace, SailException> namespaces;
         int count;
 
         count = 0;
-        namespaces = asc.getNamespaces();
+        namespaces = sc.getNamespaces();
         while (namespaces.hasNext()) {
             namespaces.next();
             count++;
@@ -923,30 +970,31 @@ public class NeoSailTest extends NeoTestCase {
 
         // TODO: actually clear namespaces (but this wipes them out for subsequent tests)
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetNamespace() throws Exception {
-        SailConnection asc = sail.getConnection();
+        SailConnection sc = sail.getConnection();
         String name;
 
-        name = asc.getNamespace("rdf");
+        name = sc.getNamespace("rdf");
         assertNull(name);
 //        assertEquals(name, "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 
-        name = asc.getNamespace("rdfs");
+        name = sc.getNamespace("rdfs");
+        sc.commit();
         assertEquals(name, "http://www.w3.org/2000/01/rdf-schema#");
 
-        asc.close();
+        sc.close();
     }
 
     public void testGetNamespaces() throws Exception {
-        SailConnection asc = sail.getConnection();
+        SailConnection sc = sail.getConnection();
         CloseableIteration<? extends Namespace, SailException> namespaces;
         int before = 0, during = 0, after = 0;
 
         // just iterate through all namespaces
-        namespaces = asc.getNamespaces();
+        namespaces = sc.getNamespaces();
         while (namespaces.hasNext()) {
             Namespace ns = namespaces.next();
             before++;
@@ -959,9 +1007,10 @@ public class NeoSailTest extends NeoTestCase {
         String prefixPrefix = "testns";
         String namePrefix = "http://example.org/test";
         for (int i = 0; i < nTests; i++) {
-            asc.setNamespace(prefixPrefix + i, namePrefix + i);
+            sc.setNamespace(prefixPrefix + i, namePrefix + i);
         }
-        namespaces = asc.getNamespaces();
+        sc.commit();
+        namespaces = sc.getNamespaces();
         while (namespaces.hasNext()) {
             Namespace ns = namespaces.next();
             during++;
@@ -974,77 +1023,82 @@ public class NeoSailTest extends NeoTestCase {
         namespaces.close();
 
         for (int i = 0; i < nTests; i++) {
-            asc.removeNamespace(prefixPrefix + i);
+            sc.removeNamespace(prefixPrefix + i);
         }
-        namespaces = asc.getNamespaces();
+        sc.commit();
+        namespaces = sc.getNamespaces();
         while (namespaces.hasNext()) {
             namespaces.next();
             after++;
         }
         namespaces.close();
 
-//System.out.println("before =" + before);
-//System.out.println("during =" + during);
-//System.out.println("after =" + after);
-
         assertEquals(during, before + nTests);
         assertEquals(after, before);
 
-        asc.close();
+        sc.close();
     }
 
     public void testSetNamespace() throws Exception {
-        SailConnection asc = sail.getConnection();
+        SailConnection sc = sail.getConnection();
 
         String prefix = "foo";
         String emptyPrefix = "";
         String name = "http://example.org/foo";
         String otherName = "http://example.org/bar";
 
-        asc.removeNamespace(prefix);
-        asc.removeNamespace(emptyPrefix);
+        sc.removeNamespace(prefix);
+        sc.removeNamespace(emptyPrefix);
+        sc.commit();
 
         // Namespace initially absent?
-        assertNull(asc.getNamespace(prefix));
-        assertNull(asc.getNamespace(emptyPrefix));
+        assertNull(sc.getNamespace(prefix));
+        assertNull(sc.getNamespace(emptyPrefix));
 
         // Can we set the namespace?
-        asc.setNamespace(prefix, name);
-        assertEquals(asc.getNamespace(prefix), name);
+        sc.setNamespace(prefix, name);
+        sc.commit();
+        assertEquals(sc.getNamespace(prefix), name);
 
         // Can we reset the namespace?
-        asc.setNamespace(prefix, otherName);
-        assertEquals(asc.getNamespace(prefix), otherName);
+        sc.setNamespace(prefix, otherName);
+        sc.commit();
+        assertEquals(sc.getNamespace(prefix), otherName);
 
         // Can we use an empty namespace prefix?
-        asc.setNamespace(emptyPrefix, name);
-        assertEquals(asc.getNamespace(emptyPrefix), name);
+        sc.setNamespace(emptyPrefix, name);
+        sc.commit();
+        assertEquals(sc.getNamespace(emptyPrefix), name);
 
-        asc.close();
+        sc.close();
     }
 
     public void testRemoveNamespace() throws Exception {
-        SailConnection asc = sail.getConnection();
+        SailConnection sc = sail.getConnection();
 
         String prefix = "foo";
         String emptyPrefix = "";
         String name = "http://example.org/foo";
 
         // Set namespace initially.
-        asc.setNamespace(prefix, name);
-        assertEquals(asc.getNamespace(prefix), name);
+        sc.setNamespace(prefix, name);
+        sc.commit();
+        assertEquals(sc.getNamespace(prefix), name);
 
         // Remove the namespace and make sure it's gone.
-        asc.removeNamespace(prefix);
-        assertNull(asc.getNamespace(prefix));
+        sc.removeNamespace(prefix);
+        sc.commit();
+        assertNull(sc.getNamespace(prefix));
 
         // Same thing for the default namespace.
-        asc.setNamespace(emptyPrefix, name);
-        assertEquals(asc.getNamespace(emptyPrefix), name);
-        asc.removeNamespace(emptyPrefix);
-        assertNull(asc.getNamespace(emptyPrefix));
+        sc.setNamespace(emptyPrefix, name);
+        sc.commit();
+        assertEquals(sc.getNamespace(emptyPrefix), name);
+        sc.removeNamespace(emptyPrefix);
+        sc.commit();
+        assertNull(sc.getNamespace(emptyPrefix));
 
-        asc.close();
+        sc.close();
     }
 
     // TODO: concurrency testing ///////////////////////////////////////////////
