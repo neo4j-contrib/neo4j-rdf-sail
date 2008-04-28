@@ -588,7 +588,6 @@ public class NeoSailTest extends NeoTestCase {
         assertTrue(count > 0);
 
         // s p ?o SELECT using a namespace prefix
-        // TODO: commented out languages for now
         queryStr = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
                 + "SELECT ?z WHERE { <urn:org.neo4j.rdf.sail.test/thor> foaf:name ?z }";
         query = parser.parseQuery(queryStr, baseURI);
