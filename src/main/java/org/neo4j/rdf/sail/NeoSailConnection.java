@@ -44,6 +44,7 @@ public class NeoSailConnection implements SailConnection
     private boolean open;
     private Transaction currentTransaction;
     private final AtomicInteger writeOperationCount = new AtomicInteger();
+    private final AtomicInteger totalAddCount = new AtomicInteger();
 
     private enum NeoSailRelTypes implements RelationshipType
     {
@@ -146,6 +147,11 @@ public class NeoSailConnection implements SailConnection
         final Value object, final Resource... contexts ) throws SailException
     {
 //System.out.println("addStatement(" + subject + ", " + predicate + ", " + object + ", " + contexts);
+        if ( totalAddCount.incrementAndGet() % 500 == 0 )
+        {
+            System.out.println( "NeoSailConnection: " + totalAddCount.get() +
+                " adds" );
+        }
         ensureOpenTransaction();
         try
         {
@@ -236,6 +242,8 @@ public class NeoSailConnection implements SailConnection
 
     public synchronized void commit() throws SailException
     {
+        System.out.println( "NeoSailConnection: commit invoked, at " +
+            writeOperationCount.get() + " op count" );
         ensureOpenTransaction();
         tx().success();
         tx().finish();
