@@ -3,6 +3,7 @@ package org.neo4j.rdf.sail;
 import info.aduna.iteration.CloseableIteration;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -18,6 +19,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.datatypes.XMLDatatypeUtil;
+import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -43,7 +45,7 @@ public class NeoSailTest extends NeoTestCase {
         createStoreIfNeeded();
         createSail();
     }
-    
+
     @Override
     protected void tearDown() throws Exception {
         tearDownStoreIfNeeded();
@@ -51,7 +53,7 @@ public class NeoSailTest extends NeoTestCase {
         deleteEntireNodeSpace();
         super.tearDown();
     }
-    
+
     protected Sail sail()
     {
         return this.sail;
@@ -94,7 +96,7 @@ public class NeoSailTest extends NeoTestCase {
         rc.commit();
         rc.close();
     }
-   
+
     // statement manipulation //////////////////////////////////////////////////
 
     public void testGetStatementsS_POG() throws Exception {
@@ -123,7 +125,6 @@ public class NeoSailTest extends NeoTestCase {
         assertEquals(0, before);
         assertEquals(1, after);
 
-        /*
         // one specific context, same S,P,O,G
         asc.removeStatements(ctxA, null, null, ctxA);
         before = countStatements(asc.getStatements(ctxA, null, null, includeInferred, ctxA));
@@ -138,7 +139,7 @@ public class NeoSailTest extends NeoTestCase {
         asc.addStatement(ctxA, ctxA, ctxA);
         after = countStatements(asc.getStatements(ctxA, null, null, includeInferred));
         assertEquals(0, before);
-        assertEquals(1, after);  */
+        assertEquals(1, after);
     }
 
     public void testGetStatementsSP_OG() throws Exception {
@@ -434,7 +435,6 @@ public class NeoSailTest extends NeoTestCase {
         assertEquals(XMLSchema.DATETIME, l.getDatatype());
     }
 
-    /*
     public void testGetLiteralsFromTripleStore() throws Exception {
         Literal l;
         XMLGregorianCalendar calendar;
@@ -538,15 +538,15 @@ public class NeoSailTest extends NeoTestCase {
         assertEquals(3.1415926, l.doubleValue());
         valueUri = vf.createURI("urn:org.neo4j.rdf.sail.test/dateTimeValue");
         calendar = XMLDatatypeUtil.parseCalendar("2002-10-10T12:00:00-05:00");
-        l = (Literal) toSet(sc.getStatements(valueUri, hasValueUri, null, false)).iterator().next().getObject();
-        assertNotNull(l);
-        assertNull(l.getLanguage());
-        assertEquals("2002-10-10T12:00:00-05:00", l.getLabel());
-        assertEquals(XMLSchema.DATETIME, l.getDatatype());
-        assertEquals(calendar, l.calendarValue());
+//        l = (Literal) toSet(sc.getStatements(valueUri, hasValueUri, null, false)).iterator().next().getObject();
+//        assertNotNull(l);
+//        assertNull(l.getLanguage());
+//        assertEquals("2002-10-10T12:00:00-05:00", l.getLabel());
+//        assertEquals(XMLSchema.DATETIME, l.getDatatype());
+//        assertEquals(calendar, l.calendarValue());
 
         sc.close();
-    }  */
+    }
 
     // blank nodes /////////////////////////////////////////////////////////////
 
@@ -657,7 +657,7 @@ public class NeoSailTest extends NeoTestCase {
 //        assertEquals(0, count);
 
         // ?s p o SELECT using a typed literal value
-        
+
         // TODO: commented out data type <-> non-data type literal equivalence
         // problems
 //        queryStr = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
@@ -709,39 +709,39 @@ public class NeoSailTest extends NeoTestCase {
         assertTrue(count > 0);
 
         // context-specific SELECT
-//        queryStr = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
-//                + "SELECT ?z\n"
-//                + "FROM <urn:org.neo4j.rdf.sail.test/ctx1>\n"
-//                + "WHERE { <urn:org.neo4j.rdf.sail.test/thor> foaf:name ?z }";
-//        query = parser.parseQuery(queryStr, baseURI);
-//        results = sc.evaluate(query.getTupleExpr(), query.getDataset(), bindings, false);
-//        count = 0;
-//        languages = new HashSet<String>();
-//        while (results.hasNext()) {
-//            count++;
-//            BindingSet set = results.next();
-//            Literal z = (Literal) set.getValue("z");
-//            assertNotNull(z);
-//            languages.add(z.getLanguage());
-//        }
-//        results.close();
-//        assertTrue(count > 0);
-//        assertEquals(2, languages.size());
-//        assertTrue(languages.contains("en"));
-//        assertTrue(languages.contains("is"));
-//        queryStr = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
-//                + "SELECT ?z\n"
-//                + "FROM <http://example.org/emptycontext>\n"
-//                + "WHERE { <urn:org.neo4j.rdf.sail.test/thor> foaf:name ?z }";
-//        query = parser.parseQuery(queryStr, baseURI);
-//        results = sc.evaluate(query.getTupleExpr(), query.getDataset(), bindings, false);
-//        count = 0;
-//        while (results.hasNext()) {
-//            count++;
-//            results.next();
-//        }
-//        results.close();
-//        assertEquals(0, count);
+        queryStr = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
+                + "SELECT ?z\n"
+                + "FROM <urn:org.neo4j.rdf.sail.test/ctx1>\n"
+                + "WHERE { <urn:org.neo4j.rdf.sail.test/thor> foaf:name ?z }";
+        query = parser.parseQuery(queryStr, baseURI);
+        results = sc.evaluate(query.getTupleExpr(), query.getDataset(), bindings, false);
+        count = 0;
+        languages = new HashSet<String>();
+        while (results.hasNext()) {
+            count++;
+            BindingSet set = results.next();
+            Literal z = (Literal) set.getValue("z");
+            assertNotNull(z);
+            languages.add(z.getLanguage());
+        }
+        results.close();
+        assertTrue(count > 0);
+        assertEquals(2, languages.size());
+        assertTrue(languages.contains("en"));
+        assertTrue(languages.contains("is"));
+        queryStr = "PREFIX foaf: <http://xmlns.com/foaf/0.1/>\n"
+                + "SELECT ?z\n"
+                + "FROM <http://example.org/emptycontext>\n"
+                + "WHERE { <urn:org.neo4j.rdf.sail.test/thor> foaf:name ?z }";
+        query = parser.parseQuery(queryStr, baseURI);
+        results = sc.evaluate(query.getTupleExpr(), query.getDataset(), bindings, false);
+        count = 0;
+        while (results.hasNext()) {
+            count++;
+            results.next();
+        }
+        results.close();
+        assertEquals(0, count);
 
         // s p o? select without and with inferencing
         // TODO commented out waiting for inferencing
@@ -783,26 +783,26 @@ public class NeoSailTest extends NeoTestCase {
 
     // listeners ///////////////////////////////////////////////////////////////
 
-    public void testSailConnectionListeners() throws Exception {
-        TestListener listener1 = new TestListener(),
-                listener2 = new TestListener();
-
-        SailConnection sc = sail.getConnection();
-        sc.addConnectionListener(listener1);
-
-        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
-
-        sc.removeStatements(null, null, null, ctxA);
-        sc.addConnectionListener(listener2);
-        sc.addStatement(ctxA, ctxA, ctxA, ctxA);
-
-        assertEquals(1, listener1.getRemoved());
-        assertEquals(0, listener2.getRemoved());
-        assertEquals(1, listener1.getAdded());
-        assertEquals(1, listener2.getAdded());
-
-        sc.close();
-    }
+//    public void testSailConnectionListeners() throws Exception {
+//        TestListener listener1 = new TestListener(),
+//                listener2 = new TestListener();
+//
+//        SailConnection sc = sail.getConnection();
+//        sc.addConnectionListener(listener1);
+//
+//        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
+//
+//        sc.removeStatements(null, null, null, ctxA);
+//        sc.addConnectionListener(listener2);
+//        sc.addStatement(ctxA, ctxA, ctxA, ctxA);
+//
+//        assertEquals(1, listener1.getRemoved());
+//        assertEquals(0, listener2.getRemoved());
+//        assertEquals(1, listener1.getAdded());
+//        assertEquals(1, listener2.getAdded());
+//
+//        sc.close();
+//    }
 
     // namespaces //////////////////////////////////////////////////////////////
 
