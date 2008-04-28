@@ -102,23 +102,19 @@ public class NeoSailConnection implements SailConnection
         return null;
     }
 
-    public CloseableIteration<? extends Statement, SailException> getStatements(
-        final Resource subject, final URI predicate, final Value object,
-        final boolean includeInferred, final Resource... contexts )
-        throws SailException
-    {
-        try
-        {
-            if ( contexts.length == 0 )
-            {
-                org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
-                    .createWildcardStatement( subject, predicate, object );
-                Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store
-                    .getStatements( statement, includeInferred );
-                return new NeoStatementIteration( iterator.iterator() );
-            }
-            else
-            {
+    public CloseableIteration<? extends Statement, SailException> getStatements(final Resource subject,
+                                                                                final URI predicate,
+                                                                                final Value object,
+                                                                                final boolean includeInferred,
+                                                                                final Resource... contexts) throws SailException {
+//System.out.println("getStatements(" + subject + ", " + predicate + ", " + object + ", " + includeInferred + ", " + contexts );
+        try {
+            if (contexts.length == 0) {
+                org.neo4j.rdf.model.WildcardStatement statement
+                        = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
+                Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
+                return new NeoStatementIteration(iterator.iterator());
+            } else {
                 LinkedList<CompleteStatement> result = new LinkedList<CompleteStatement>();
                 for ( Resource context : contexts )
                 {
@@ -145,10 +141,11 @@ public class NeoSailConnection implements SailConnection
     {
         return 0;
     }
-    
+
     public void addStatement( final Resource subject, final URI predicate,
         final Value object, final Resource... contexts ) throws SailException
     {
+//System.out.println("addStatement(" + subject + ", " + predicate + ", " + object + ", " + contexts);
         ensureOpenTransaction();
         try
         {

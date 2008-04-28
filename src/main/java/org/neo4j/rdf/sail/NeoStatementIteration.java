@@ -29,6 +29,7 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
 
     public Statement next() throws SailException {
         org.neo4j.rdf.model.CompleteStatement statement = iterator.next();
+//System.out.println("retrieved a statement: " + statement);
         return (null == statement)
                 // TODO: would be better here if iterator were an Iterator<CompleteStatement>
                 ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);
