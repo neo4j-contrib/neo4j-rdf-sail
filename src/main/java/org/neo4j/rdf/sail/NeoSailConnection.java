@@ -5,6 +5,7 @@ import info.aduna.iteration.CloseableIteration;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.neo4j.api.core.NeoService;
@@ -30,20 +31,27 @@ import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
+import org.openrdf.sail.SailChangedListener;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.helpers.DefaultSailChangedEvent;
 
 /**
  * Author: josh Date: Apr 25, 2008 Time: 5:36:36 PM
  */
 public class NeoSailConnection implements SailConnection
 {
+    private static final int DEFAULT_BATCHSIZE = 5000;
+
     private final NeoService neo;
     private final RdfStore store;
     private final ValueFactory valueFactory;
-    private final Set<SailConnectionListener> listeners = new HashSet<SailConnectionListener>();
+    private final Set<SailConnectionListener> sailConnectionListeners = new HashSet<SailConnectionListener>();
+    private final Collection<SailChangedListener> sailChangedListeners;
     private final int batchSize;
     private boolean open;
     private Transaction currentTransaction;
     private final AtomicInteger writeOperationCount = new AtomicInteger();
+    private final Sail sail;
     private final AtomicInteger totalAddCount = new AtomicInteger();
 
     private enum NeoSailRelTypes implements RelationshipType
@@ -51,20 +59,22 @@ public class NeoSailConnection implements SailConnection
         REF_TO_NAMESPACE
     }
 
-    NeoSailConnection( final NeoService neo, final RdfStore store,
-        final ValueFactory valueFactory )
+    NeoSailConnection( final NeoService neo, final RdfStore store, final Sail sail,
+        final ValueFactory valueFactory, final Collection<SailChangedListener> sailChangedListeners )
     {
-        this( neo, store, valueFactory, 5000 );
+        this( neo, store, sail, valueFactory, DEFAULT_BATCHSIZE, sailChangedListeners );
     }
 
-    NeoSailConnection( final NeoService neo, final RdfStore store,
-        final ValueFactory valueFactory, int batchSize )
+    NeoSailConnection( final NeoService neo, final RdfStore store, final Sail sail,
+        final ValueFactory valueFactory, int batchSize, final Collection<SailChangedListener> sailChangedListeners )
     {
         this.neo = neo;
         this.store = store;
+        this.sail = sail;
         this.valueFactory = valueFactory;
         this.open = true;
         this.batchSize = batchSize;
+        this.sailChangedListeners = sailChangedListeners;
     }
 
     public boolean isOpen() throws SailException
@@ -97,6 +107,7 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
+    // TODO
     public CloseableIteration<? extends Resource, SailException> getContextIDs()
         throws SailException
     {
@@ -138,9 +149,10 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
+    // TODO
     public long size( final Resource... contexts ) throws SailException
     {
-        return 0;
+        return -1;
     }
 
     public void addStatement( final Resource subject, final URI predicate,
@@ -178,9 +190,10 @@ public class NeoSailConnection implements SailConnection
         {
             throw new SailException( e );
         }
-        if ( listeners.size() > 0 )
+
+        if ( sailConnectionListeners.size() > 0 )
         {
-            for ( SailConnectionListener l : listeners )
+            for ( SailConnectionListener l : sailConnectionListeners)
             {
                 if ( 0 == contexts.length )
                 {
@@ -195,6 +208,15 @@ public class NeoSailConnection implements SailConnection
                             subject, predicate, object, context ) );
                     }
                 }
+            }
+        }
+
+        if (sailChangedListeners.size() > 0) {
+            DefaultSailChangedEvent event = new DefaultSailChangedEvent(sail);
+            event.setStatementsAdded(true);
+
+            for (SailChangedListener listener : sailChangedListeners) {
+                listener.sailChanged(event);
             }
         }
     }
@@ -238,6 +260,17 @@ public class NeoSailConnection implements SailConnection
          * l.statementRemoved(valueFactory.createStatement(subject, predicate,
          * object, context)); } } } }
          */
+
+        // Note: doesn't check whether any statements were actually removed,
+        // only that this method was called.
+        if (sailChangedListeners.size() > 0) {
+            DefaultSailChangedEvent event = new DefaultSailChangedEvent(sail);
+            event.setStatementsRemoved(true);
+
+            for (SailChangedListener listener : sailChangedListeners) {
+                listener.sailChanged(event);
+            }
+        }
     }
 
     public synchronized void commit() throws SailException
@@ -288,6 +321,7 @@ public class NeoSailConnection implements SailConnection
 
     public void clear( final Resource... contexts ) throws SailException
     {
+        // TODO
     }
 
     public CloseableIteration<? extends Namespace, SailException> getNamespaces()
@@ -363,17 +397,17 @@ public class NeoSailConnection implements SailConnection
 
     public void addConnectionListener( final SailConnectionListener listener )
     {
-        synchronized ( listeners )
+        synchronized (sailConnectionListeners)
         {
-            listeners.add( listener );
+            sailConnectionListeners.add( listener );
         }
     }
 
     public void removeConnectionListener( final SailConnectionListener listener )
     {
-        synchronized ( listeners )
+        synchronized (sailConnectionListeners)
         {
-            listeners.remove( listener );
+            sailConnectionListeners.remove( listener );
         }
     }
 }

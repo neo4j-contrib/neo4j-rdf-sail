@@ -10,6 +10,8 @@ import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
 
 import java.io.File;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Author: josh
@@ -22,28 +24,29 @@ public class NeoSail implements Sail {
 
     private final NeoService neo;
     private final RdfStore store;
-    private final ValueFactory valueFactory;
+    private final ValueFactory valueFactory = new ValueFactoryImpl();
+    private final Set<SailChangedListener> listeners = new HashSet<SailChangedListener>();
 
     public NeoSail(final NeoService neo, final RdfStore store) {
         this.neo = neo;
         this.store = store;
-        this.valueFactory = new ValueFactoryImpl();
     }
 
     public void setDataDir(final File file) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        // Not used.
     }
 
     public File getDataDir() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        // Not used.
+        return null;
     }
 
     public void initialize() throws SailException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        // Not used.
     }
 
     public void shutDown() throws SailException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        // Not used.
     }
 
     public boolean isWritable() throws SailException {
@@ -51,18 +54,18 @@ public class NeoSail implements Sail {
     }
 
     public SailConnection getConnection() throws SailException {
-        return new NeoSailConnection(neo, store, valueFactory);
+        return new NeoSailConnection(neo, store, this, valueFactory, listeners);
     }
 
     public ValueFactory getValueFactory() {
         return valueFactory;
     }
 
-    public void addSailChangedListener(final SailChangedListener sailChangedListener) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void addSailChangedListener(final SailChangedListener listener) {
+        listeners.add(listener);
     }
 
-    public void removeSailChangedListener(final SailChangedListener sailChangedListener) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void removeSailChangedListener(final SailChangedListener listener) {
+        listeners.remove(listener);
     }
 }

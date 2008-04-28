@@ -5,6 +5,8 @@ import info.aduna.iteration.CloseableIteration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.io.File;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -13,6 +15,7 @@ import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
 import org.neo4j.util.index.NeoIndexService;
+import org.neo4j.util.index.LuceneIndexService;
 import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.openrdf.model.Literal;
@@ -38,6 +41,8 @@ import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
+import org.openrdf.sail.SailChangedListener;
+import org.openrdf.sail.SailChangedEvent;
 
 public class NeoSailTest extends NeoTestCase {
     private Sail sail = null;
@@ -863,6 +868,39 @@ public class NeoSailTest extends NeoTestCase {
 //        assertEquals(0, listener2.getRemoved());
         assertEquals(1, listener1.getAdded());
         assertEquals(1, listener2.getAdded());
+
+        sc.close();
+    }
+
+    public void testSailChangedListeners() throws Exception {
+        final Collection<SailChangedEvent> events = new LinkedList<SailChangedEvent>();
+
+        SailChangedListener listener = new SailChangedListener() {
+
+            public void sailChanged(final SailChangedEvent event) {
+                events.add(event);
+            }
+        };
+
+        sail().addSailChangedListener(listener);
+
+        URI ctxA = sail.getValueFactory().createURI("http://example.org/ctxA");
+        SailConnection sc = sail.getConnection();
+
+        assertEquals(0, events.size());
+        sc.addStatement(ctxA, ctxA, ctxA, ctxA);
+        assertEquals(1, events.size());
+        SailChangedEvent event = events.iterator().next();
+        assertTrue(event.statementsAdded());
+        assertFalse(event.statementsRemoved());
+
+        events.clear();
+        assertEquals(0, events.size());
+        sc.removeStatements(ctxA, ctxA, ctxA, ctxA);
+        assertEquals(1, events.size());
+        event = events.iterator().next();
+        assertFalse(event.statementsAdded());
+        assertTrue(event.statementsRemoved());        
 
         sc.close();
     }
