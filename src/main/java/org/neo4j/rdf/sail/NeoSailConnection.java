@@ -159,7 +159,6 @@ public class NeoSailConnection implements SailConnection
     public void addStatement( final Resource subject, final URI predicate,
         final Value object, final Resource... contexts ) throws SailException
     {
-//System.out.println("addStatement(" + subject + ", " + predicate + ", " + object + ", " + contexts);
         if ( totalAddCount.incrementAndGet() % 500 == 0 )
         {
             System.out.println( "NeoSailConnection: " + totalAddCount.get() +
@@ -189,6 +188,7 @@ public class NeoSailConnection implements SailConnection
         }
         catch ( RuntimeException e )
         {
+            e.printStackTrace();
             throw new SailException( e );
         }
 
@@ -248,6 +248,7 @@ public class NeoSailConnection implements SailConnection
         }
         catch ( RuntimeException e )
         {
+            e.printStackTrace();
             throw new SailException( e );
         }
         // TODO: wildcard statements are not allowed by ValueFactoryImpl --
