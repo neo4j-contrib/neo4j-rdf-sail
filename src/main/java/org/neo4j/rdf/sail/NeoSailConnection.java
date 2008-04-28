@@ -3,11 +3,17 @@ package org.neo4j.rdf.sail;
 import info.aduna.iteration.CloseableIteration;
 
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.neo4j.api.core.NeoService;
+import org.neo4j.api.core.Node;
+import org.neo4j.api.core.RelationshipType;
+import org.neo4j.api.core.Transaction;
 import org.neo4j.rdf.model.CompleteStatement;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
+import org.neo4j.util.NeoUtil;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -34,6 +40,7 @@ public class NeoSailConnection implements SailConnection {
     private final RdfStore store;
     private ValueFactory valueFactory;
     private boolean open;
+    private final Set<SailConnectionListener> listeners = new HashSet<SailConnectionListener>();
 
     NeoSailConnection(final NeoService neo,
                       final RdfStore store,
@@ -57,18 +64,16 @@ public class NeoSailConnection implements SailConnection {
                                                                                        final Dataset dataset,
                                                                                        final BindingSet bindingSet,
                                                                                        final boolean includeInferred) throws SailException {
-		try
-		{
-			TripleSource tripleSource = new SailConnectionTripleSource(this, valueFactory, includeInferred);
-			EvaluationStrategyImpl strategy = new EvaluationStrategyImpl(tripleSource, dataset);
+        try {
+            TripleSource tripleSource = new SailConnectionTripleSource(this, valueFactory, includeInferred);
+            EvaluationStrategyImpl strategy = new EvaluationStrategyImpl(tripleSource, dataset);
 
-			return strategy.evaluate(tupleExpr, bindingSet);
-		}
+            return strategy.evaluate(tupleExpr, bindingSet);
+        }
 
-        catch (QueryEvaluationException e)
-		{
-			throw new SailException(e);
-		}
+        catch (QueryEvaluationException e) {
+            throw new SailException(e);
+        }
     }
 
     public CloseableIteration<? extends Resource, SailException> getContextIDs() throws SailException {
@@ -81,24 +86,19 @@ public class NeoSailConnection implements SailConnection {
                                                                                 final boolean includeInferred,
                                                                                 final Resource... contexts) throws SailException {
         try {
-            if ( contexts.length == 0 )
-            {
+            if (contexts.length == 0) {
                 org.neo4j.rdf.model.WildcardStatement statement
                         = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
                 Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
                 return new NeoStatementIteration(iterator.iterator());
-            }
-            else
-            {
+            } else {
                 LinkedList<CompleteStatement> result = new LinkedList<CompleteStatement>();
-                for ( Resource context : contexts )
-                {
+                for (Resource context : contexts) {
                     org.neo4j.rdf.model.WildcardStatement statement
                             = SesameNeoMapper.createWildcardStatement(subject, predicate, object, context);
                     Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
-                    for ( CompleteStatement resultStatement : iterator )
-                    {
-                        result.add( resultStatement );
+                    for (CompleteStatement resultStatement : iterator) {
+                        result.add(resultStatement);
                     }
                 }
                 return new NeoStatementIteration(result.iterator());
@@ -125,23 +125,31 @@ public class NeoSailConnection implements SailConnection {
                              final Value object,
                              final Resource... contexts) throws SailException {
         try {
-            if ( contexts.length == 0 )
-            {
-                org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper.createCompleteStatement(subject, predicate, object, (Resource)null);
+            if (contexts.length == 0) {
+                org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper.createCompleteStatement(subject, predicate, object, (Resource) null);
                 store.addStatements(statement);
-            }
-            else
-            {
-                for ( Resource context : contexts )
-                {
+            } else {
+                for (Resource context : contexts) {
                     org.neo4j.rdf.model.CompleteStatement statement =
-                        SesameNeoMapper.createCompleteStatement(subject, predicate, object, context);
+                            SesameNeoMapper.createCompleteStatement(subject, predicate, object, context);
                     store.addStatements(statement);
                 }
             }
 
         } catch (RuntimeException e) {
             throw new SailException(e);
+        }
+
+        if (listeners.size() > 0) {
+            for (SailConnectionListener l : listeners) {
+                if (0 == contexts.length) {
+                    l.statementAdded(valueFactory.createStatement(subject, predicate, object));
+                } else {
+                    for (Resource context : contexts) {
+                        l.statementAdded(valueFactory.createStatement(subject, predicate, object, context));
+                    }
+                }
+            }
         }
     }
 
@@ -150,24 +158,35 @@ public class NeoSailConnection implements SailConnection {
                                  final Value object,
                                  final Resource... contexts) throws SailException {
         try {
-            if ( contexts.length == 0 )
-            {
+            if (contexts.length == 0) {
                 org.neo4j.rdf.model.WildcardStatement statement
-                    = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
+                        = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
                 store.removeStatements(statement);
-            }
-            else
-            {
-                for ( Resource context : contexts )
-                {
+            } else {
+                for (Resource context : contexts) {
                     org.neo4j.rdf.model.WildcardStatement statement
-                        = SesameNeoMapper.createWildcardStatement(subject, predicate, object, context);
+                            = SesameNeoMapper.createWildcardStatement(subject, predicate, object, context);
                     store.removeStatements(statement);
                 }
             }
         } catch (RuntimeException e) {
             throw new SailException(e);
         }
+
+        // TODO: wildcard statements are not allowed by ValueFactoryImpl -- either create a new ValueFactory class
+        // which does allow them, or don't worry about it...
+/*
+        if (listeners.size() > 0) {
+            for (SailConnectionListener l : listeners) {
+                if (0 == contexts.length) {
+                    l.statementRemoved(valueFactory.createStatement(subject, predicate, object));
+                } else {
+                    for (Resource context : contexts) {
+                        l.statementRemoved(valueFactory.createStatement(subject, predicate, object, context));
+                    }
+                }
+            }
+        }*/
     }
 
     public void clear(final Resource... contexts) throws SailException {
@@ -175,30 +194,66 @@ public class NeoSailConnection implements SailConnection {
     }
 
     public CloseableIteration<? extends Namespace, SailException> getNamespaces() throws SailException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new NeoNamespaceIteration(getNamespaceNode(), neo);
     }
 
     public String getNamespace(final String prefix) throws SailException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        Transaction tx = neo.beginTx();
+        try {
+            String uri = (String) getNamespaceNode().getProperty(prefix, null);
+            tx.success();
+            return uri;
+        } finally {
+            tx.finish();
+        }
     }
 
     public void setNamespace(final String prefix, final String uri) throws SailException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        Transaction tx = neo.beginTx();
+        try {
+            getNamespaceNode().setProperty(prefix, uri);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
     }
 
-    public void removeNamespace(final String s) throws SailException {
-        //To change body of implemented methods use File | Settings | File Templates.
+    private Node getNamespaceNode() {
+
+        return new NeoUtil(neo).getOrCreateSubReferenceNode(NeoSailRelTypes.REF_TO_NAMESPACE);
+    }
+
+    private enum NeoSailRelTypes implements RelationshipType { REF_TO_NAMESPACE }
+
+    public void removeNamespace(final String prefix) throws SailException {
+        Transaction tx = neo.beginTx();
+        try {
+            getNamespaceNode().removeProperty(prefix);
+            tx.success();
+        } finally {
+            tx.finish();
+        }
     }
 
     public void clearNamespaces() throws SailException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        Transaction tx = neo.beginTx();
+        try {
+            getNamespaceNode().delete();
+            tx.success();
+        } finally {
+            tx.finish();
+        }
     }
 
-    public void addConnectionListener(final SailConnectionListener sailConnectionListener) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void addConnectionListener(final SailConnectionListener listener) {
+        synchronized (listeners) {
+            listeners.add(listener);
+        }
     }
 
-    public void removeConnectionListener(final SailConnectionListener sailConnectionListener) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public void removeConnectionListener(final SailConnectionListener listener) {
+        synchronized (listeners) {
+            listeners.remove(listener);
+        }
     }
 }
