@@ -236,6 +236,7 @@ public class NeoSailConnection implements SailConnection
 
     public synchronized void commit() throws SailException
     {
+        ensureOpenTransaction();
         tx().success();
         tx().finish();
         clearBatchCommit();
@@ -244,6 +245,7 @@ public class NeoSailConnection implements SailConnection
 
     public synchronized void rollback() throws SailException
     {
+        ensureOpenTransaction();
         tx().finish();
         clearBatchCommit();
         currentTransaction = null;
