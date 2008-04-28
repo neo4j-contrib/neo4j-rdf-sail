@@ -276,29 +276,38 @@ public class NeoSailConnection implements SailConnection
     public synchronized void commit() throws SailException
     {
         System.out.println( "NeoSailConnection: commit invoked, at " +
-            writeOperationCount.get() + " op count" );
-        ensureOpenTransaction();
-        tx().success();
-        tx().finish();
-        clearBatchCommit();
-        currentTransaction = null;
+            writeOperationCount.get() + " op count" );        
+        if ( openTransaction() )
+        {
+            tx().success();
+            tx().finish();
+            clearBatchCommit();
+            currentTransaction = null;
+        }
     }
 
     public synchronized void rollback() throws SailException
     {
-        ensureOpenTransaction();
-        tx().finish();
-        clearBatchCommit();
-        currentTransaction = null;
+        if ( openTransaction() )
+        {
+            tx().finish();
+            clearBatchCommit();
+            currentTransaction = null;
+        }
     }
 
     private synchronized void ensureOpenTransaction()
     {
-        if ( tx() == null )
+        if ( !openTransaction() )
         {
             clearBatchCommit();
             currentTransaction = neo.beginTx();            
         }
+    }
+    
+    private synchronized boolean openTransaction()
+    {
+        return tx() != null;
     }
     
     private synchronized void checkBatchCommit() throws SailException
