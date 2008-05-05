@@ -2,29 +2,28 @@ package org.neo4j.rdf.sail;
 
 import info.aduna.iteration.CloseableIteration;
 
+import java.io.File;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
-import java.util.Collection;
 import java.util.LinkedList;
-import java.io.File;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.neo4j.api.core.EmbeddedNeo;
+import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
 import org.neo4j.util.index.NeoIndexService;
-import org.neo4j.util.index.LuceneIndexService;
-import org.neo4j.api.core.EmbeddedNeo;
-import org.neo4j.api.core.NeoService;
 import org.openrdf.model.Literal;
+import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.Namespace;
 import org.openrdf.model.datatypes.XMLDatatypeUtil;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.XMLSchema;
@@ -38,11 +37,11 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailChangedEvent;
+import org.openrdf.sail.SailChangedListener;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
-import org.openrdf.sail.SailChangedListener;
-import org.openrdf.sail.SailChangedEvent;
 
 public class NeoSailTest extends NeoTestCase {
     private Sail sail = null;

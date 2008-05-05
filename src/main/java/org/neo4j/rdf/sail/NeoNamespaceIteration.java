@@ -1,21 +1,17 @@
 package org.neo4j.rdf.sail;
 
 import info.aduna.iteration.CloseableIteration;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+
+import org.neo4j.api.core.NeoService;
+import org.neo4j.api.core.Node;
+import org.neo4j.api.core.Transaction;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.sail.SailException;
-import org.neo4j.rdf.model.CompleteStatement;
-import org.neo4j.api.core.Node;
-import org.neo4j.api.core.Transaction;
-import org.neo4j.api.core.NeoService;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.LinkedList;
 
 /**
  * Author: josh

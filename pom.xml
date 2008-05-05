@@ -15,11 +15,11 @@
     <description>A Neo RDF Sesame Storage and Inference Layer</description>
 
     <repositories>
-        <!--<repository>
+        <repository>
             <id>aduna-repo</id>
             <name>Aduna repository</name>
             <url>http://repository.aduna-software.org/maven2</url>
-        </repository>-->
+        </repository>
     </repositories>
 
     <dependencies>
