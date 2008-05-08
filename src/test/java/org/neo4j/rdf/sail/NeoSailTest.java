@@ -2,7 +2,6 @@ package org.neo4j.rdf.sail;
 
 import info.aduna.iteration.CloseableIteration;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,8 +10,6 @@ import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.neo4j.api.core.EmbeddedNeo;
-import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
@@ -46,25 +43,12 @@ import org.openrdf.sail.SailException;
 public class NeoSailTest extends NeoTestCase {
     private Sail sail = null;
     private RdfStore store = null;
-
-    // remove me
-    public static void main(final String[] args) throws Exception {
-        final NeoService neo = new EmbeddedNeo( "var/test/neo" );
-        VerboseQuadStore store = new VerboseQuadStore( neo, null, null );
-        Sail sail = new NeoSail( neo, store );
-
-        sail.initialize();
-        Repository repo = new SailRepository(sail);
-        RepositoryConnection rc = repo.getConnection();
-        rc.add(new File("/tmp/neotestdata/cens.trig"), "", RDFFormat.TRIG);
-//        rc.add(new File("/tmp/neotestdata/100000.ntriples"), "", RDFFormat.NTRIPLES);
-        rc.commit();
-        rc.close();
-
-        sail.shutDown();
-        neo.shutdown();
-    }
     
+    public static void main( String[] args ) throws Exception
+    {
+    	BatchInserter.main( args );
+    }
+
     @Override
     protected void setUp() throws Exception {
         super.setUp();

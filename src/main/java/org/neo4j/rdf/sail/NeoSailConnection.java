@@ -165,11 +165,7 @@ public class NeoSailConnection implements SailConnection
     public void addStatement( final Resource subject, final URI predicate,
         final Value object, final Resource... contexts ) throws SailException
     {
-        if ( totalAddCount.incrementAndGet() % 500 == 0 )
-        {
-            System.out.println( "NeoSailConnection: " + totalAddCount.get() +
-                " adds" );
-        }
+    	totalAddCount.incrementAndGet();
         ensureOpenTransaction();
         try
         {
@@ -284,7 +280,8 @@ public class NeoSailConnection implements SailConnection
     public synchronized void commit() throws SailException
     {
         System.out.println( "NeoSailConnection: commit invoked, at " +
-            writeOperationCount.get() + " op count" );        
+            writeOperationCount.get() + " op count (total of " +
+            totalAddCount.get() + ")" );
         if ( openTransaction() )
         {
             tx().success();
