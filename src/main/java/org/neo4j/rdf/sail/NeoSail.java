@@ -12,6 +12,7 @@ import org.neo4j.rdf.store.RdfStore;
 import java.io.File;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Author: josh
@@ -26,7 +27,8 @@ public class NeoSail implements Sail {
     private final RdfStore store;
     private final ValueFactory valueFactory = new ValueFactoryImpl();
     private final Set<SailChangedListener> listeners = new HashSet<SailChangedListener>();
-
+    private final AtomicInteger connectionCounter = new AtomicInteger();
+    
     public NeoSail(final NeoService neo, final RdfStore store) {
 //System.out.println("we're creating a NeoSail: " + neo + ", " + store);
         this.neo = neo;
@@ -48,6 +50,8 @@ public class NeoSail implements Sail {
 
     public void shutDown() throws SailException {
         // Not used.
+//    	System.out.println( "Number of history connections: " +
+//    		connectionCounter.get() );
     }
 
     public boolean isWritable() throws SailException {
@@ -55,6 +59,7 @@ public class NeoSail implements Sail {
     }
 
     public SailConnection getConnection() throws SailException {
+    	connectionCounter.incrementAndGet();
         return new NeoSailConnection(neo, store, this, valueFactory, listeners);
     }
 

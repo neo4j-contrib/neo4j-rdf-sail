@@ -121,7 +121,7 @@ public class NeoSailConnection implements SailConnection
                                                                                 final Resource... contexts) throws SailException {
         if (includeInferred) {
             // TODO: change this to a warning
-            System.err.println("Warning: inference is not yet supported");
+//            System.err.println("Warning: inference is not yet supported");
             includeInferred = false;
         }
 
@@ -279,9 +279,9 @@ public class NeoSailConnection implements SailConnection
 
     public synchronized void commit() throws SailException
     {
-        System.out.println( "NeoSailConnection: commit invoked, at " +
-            writeOperationCount.get() + " op count (total of " +
-            totalAddCount.get() + ")" );
+//        System.out.println( "NeoSailConnection: commit invoked, at " +
+//            writeOperationCount.get() + " op count (total of " +
+//            totalAddCount.get() + ")" );
         if ( openTransaction() )
         {
             tx().success();
@@ -293,8 +293,8 @@ public class NeoSailConnection implements SailConnection
 
     public synchronized void rollback() throws SailException
     {
-        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
-            writeOperationCount.get() + " op count" );        
+//        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
+//            writeOperationCount.get() + " op count" );        
         if ( openTransaction() )
         {
             tx().finish();

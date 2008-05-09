@@ -29,7 +29,7 @@ public class BatchInserter
 	
 	public void insert( File... files ) throws Exception
 	{
-		long startTime = System.currentTimeMillis();
+		SimpleTimer timer = new SimpleTimer();
 		Sail sail = new NeoSail( neo, store );
 		try
 		{
@@ -46,13 +46,7 @@ public class BatchInserter
 		finally
 		{
 			sail.shutDown();
-			long time = System.currentTimeMillis() - startTime;
-			int seconds = ( int ) ( time / 1000 );
-			int minutes = seconds / 60;
-			seconds = seconds % 60;
-			int millis = ( int ) ( time % 1000 );
-			System.out.println( "Time: " + minutes + " min, " +
-				seconds + "," + millis + " sec" );
+			timer.end();
 		}
 	}
 	
