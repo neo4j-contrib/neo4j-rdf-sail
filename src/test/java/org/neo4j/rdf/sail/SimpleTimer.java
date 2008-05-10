@@ -16,7 +16,7 @@ public class SimpleTimer
 		int minutes = seconds / 60;
 		seconds = seconds % 60;
 		int millis = ( int ) ( time % 1000 );
-		System.out.println( "Time: " + minutes + " min, " +
+		System.out.println( "Time: " + minutes + " min " +
 			seconds + "," + millis + " sec" );
 	}
 }
