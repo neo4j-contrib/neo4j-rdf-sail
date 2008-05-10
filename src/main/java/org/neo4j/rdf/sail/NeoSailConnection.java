@@ -149,18 +149,20 @@ public class NeoSailConnection implements SailConnection
                 }
                 result = new CombiningIterable<CompleteStatement>( allQueries );
             }
-//
-//            int counter = 0;
+            return new NeoStatementIteration( result.iterator() );
+
+//            LinkedList<CompleteStatement> statements = new LinkedList<CompleteStatement>();
 //            for ( CompleteStatement stmt : result )
 //            {
-//            	stmt.toString();
-//            	counter++;
+//            	statements.add( stmt );
 //            }
-//            if ( counter > 0 )
+//            return new NeoStatementIteration( statements.iterator() );
+            
+//            for ( CompleteStatement s : result )
 //            {
-//            	System.out.println( counter + ": " + subject + ", " + predicate + ", " + object );
+//            	s.toString();
 //            }
-            return new NeoStatementIteration( result.iterator() );
+//            return new NeoStatementIteration( result.iterator() );
         }
         catch ( RuntimeException e )
         {

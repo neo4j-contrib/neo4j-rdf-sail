@@ -7,26 +7,39 @@ public class Playbacker extends NeoTestCase
 //		final NeoService neo = new EmbeddedNeo( "var/neo" );
 //		final IndexService indexService = new LuceneIndexService( neo );
 //		VerboseQuadStore store = new VerboseQuadStore( neo, indexService );
-//		InputStream in = new FileInputStream(
+//		File fileToPlayback = new File(
 ////			"playback/load-atoll-data.log"
 ////			"playback/atoll-activity.log"
-//			"playback/atoll-activity-full.log"
+////			"playback/atoll-activity-full.log"
+//            "playback/relatedthings.log"
 //			);
 //		Sail baseSail = new NeoSail( neo, store );
-//		Sail sail = null;
-//		SimpleTimer timer = new SimpleTimer();
 //		try
 //		{
-//			sail = new PlaybackSail(baseSail, in);
-//			System.out.println( "Playing back..." );
-//			sail.initialize();
-//			in.close();
-//			System.out.println( "Done" );
+//			for ( int i = 0; i < 20; i++ )
+//			{
+//				SimpleTimer timer = null;
+//				Sail sail = null;
+//				InputStream in = null;
+//				try
+//				{
+//					in = new FileInputStream( fileToPlayback );
+//					timer = new SimpleTimer();
+//					sail = new PlaybackSail(baseSail, in);
+//					System.out.println( "Playing back..." );
+//					sail.initialize();
+//					System.out.println( "Done" );
+//				}
+//				finally
+//				{
+//					timer.end();
+//					in.close();
+//					sail.shutDown();
+//				}
+//			}
 //		}
 //		finally
 //		{
-//			timer.end();
-//			sail.shutDown();
 //			indexService.shutdown();
 //			neo.shutdown();
 //		}
