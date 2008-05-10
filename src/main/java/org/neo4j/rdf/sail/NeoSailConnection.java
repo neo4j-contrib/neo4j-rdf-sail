@@ -2,10 +2,10 @@ package org.neo4j.rdf.sail;
 
 import info.aduna.iteration.CloseableIteration;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.neo4j.api.core.NeoService;
@@ -15,6 +15,7 @@ import org.neo4j.api.core.Transaction;
 import org.neo4j.rdf.model.CompleteStatement;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
+import org.neo4j.util.CombiningIterable;
 import org.neo4j.util.NeoUtil;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -28,11 +29,11 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailChangedListener;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
-import org.openrdf.sail.SailChangedListener;
-import org.openrdf.sail.Sail;
 import org.openrdf.sail.helpers.DefaultSailChangedEvent;
 
 /**
@@ -128,27 +129,38 @@ public class NeoSailConnection implements SailConnection
         ensureOpenTransaction();
 //System.out.println("getStatements(" + subject + ", " + predicate + ", " + object + ", " + includeInferred + ", " + contexts );
         try {
+        	Iterable<CompleteStatement> result = null;
             if (contexts.length == 0) {
                 org.neo4j.rdf.model.WildcardStatement statement
                         = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
                 Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
-                return new NeoStatementIteration(iterator.iterator());
+                result = iterator;
             } else {
-                LinkedList<CompleteStatement> result = new LinkedList<CompleteStatement>();
+                LinkedList<Iterable<CompleteStatement>> allQueries =
+                	new LinkedList<Iterable<CompleteStatement>>();
                 for ( Resource context : contexts )
                 {
                     org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
                         .createWildcardStatement( subject, predicate, object,
                             context );
-                    Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store
+                    Iterable<CompleteStatement> iterator = store
                         .getStatements( statement, includeInferred );
-                    for ( CompleteStatement resultStatement : iterator )
-                    {
-                        result.add( resultStatement );
-                    }
+                    allQueries.add( iterator );
                 }
-                return new NeoStatementIteration( result.iterator() );
+                result = new CombiningIterable<CompleteStatement>( allQueries );
             }
+//
+//            int counter = 0;
+//            for ( CompleteStatement stmt : result )
+//            {
+//            	stmt.toString();
+//            	counter++;
+//            }
+//            if ( counter > 0 )
+//            {
+//            	System.out.println( counter + ": " + subject + ", " + predicate + ", " + object );
+//            }
+            return new NeoStatementIteration( result.iterator() );
         }
         catch ( RuntimeException e )
         {
