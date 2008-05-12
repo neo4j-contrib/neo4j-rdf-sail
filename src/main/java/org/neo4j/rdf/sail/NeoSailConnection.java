@@ -54,6 +54,7 @@ public class NeoSailConnection implements SailConnection
     private final AtomicInteger writeOperationCount = new AtomicInteger();
     private final Sail sail;
     private final AtomicInteger totalAddCount = new AtomicInteger();
+    private boolean iterateResults;
 
     private enum NeoSailRelTypes implements RelationshipType
     {
@@ -87,6 +88,15 @@ public class NeoSailConnection implements SailConnection
     {
         open = false;
         rollback();
+    }
+    
+    public void setIterateResults( boolean iterateResults )
+    {
+        // When running playback tests I don't think the PlaybackSail
+        // iterates through all the results and since the Iterator returned
+        // from this method is a true iterator which will find the results
+        // on the fly it isn't a fair result to just return the iterator.
+    	this.iterateResults = iterateResults;
     }
 
     public CloseableIteration<? extends BindingSet, QueryEvaluationException> evaluate(
@@ -149,20 +159,17 @@ public class NeoSailConnection implements SailConnection
                 }
                 result = new CombiningIterable<CompleteStatement>( allQueries );
             }
-            return new NeoStatementIteration( result.iterator() );
-
-//            LinkedList<CompleteStatement> statements = new LinkedList<CompleteStatement>();
-//            for ( CompleteStatement stmt : result )
-//            {
-//            	statements.add( stmt );
-//            }
-//            return new NeoStatementIteration( statements.iterator() );
             
-//            for ( CompleteStatement s : result )
-//            {
-//            	s.toString();
-//            }
-//            return new NeoStatementIteration( result.iterator() );
+            if ( this.iterateResults )
+            {
+	            LinkedList<CompleteStatement> statements = new LinkedList<CompleteStatement>();
+	            for ( CompleteStatement stmt : result )
+	            {
+	            	statements.add( stmt );
+	            }
+	            result = statements;
+            }
+            return new NeoStatementIteration( result.iterator() );
         }
         catch ( RuntimeException e )
         {

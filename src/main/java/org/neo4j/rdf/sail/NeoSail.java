@@ -28,6 +28,7 @@ public class NeoSail implements Sail {
     private final ValueFactory valueFactory = new ValueFactoryImpl();
     private final Set<SailChangedListener> listeners = new HashSet<SailChangedListener>();
     private final AtomicInteger connectionCounter = new AtomicInteger();
+    private boolean iterateResults;
     
     public NeoSail(final NeoService neo, final RdfStore store) {
 //System.out.println("we're creating a NeoSail: " + neo + ", " + store);
@@ -42,6 +43,15 @@ public class NeoSail implements Sail {
     public File getDataDir() {
         // Not used.
         return null;
+    }
+    
+    public void setIterateResults( boolean iterateResults )
+    {
+        // When running playback tests I don't think the PlaybackSail
+        // iterates through all the results and since the Iterator returned
+        // from this method is a true iterator which will find the results
+        // on the fly it isn't a fair result to just return the iterator.
+    	this.iterateResults = iterateResults;
     }
 
     public void initialize() throws SailException {
@@ -60,7 +70,10 @@ public class NeoSail implements Sail {
 
     public SailConnection getConnection() throws SailException {
     	connectionCounter.incrementAndGet();
-        return new NeoSailConnection(neo, store, this, valueFactory, listeners);
+        NeoSailConnection connection =
+        	new NeoSailConnection(neo, store, this, valueFactory, listeners);
+        connection.setIterateResults( iterateResults );
+        return connection;
     }
 
     public ValueFactory getValueFactory() {
