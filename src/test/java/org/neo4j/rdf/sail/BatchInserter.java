@@ -6,10 +6,10 @@ import java.util.Collection;
 
 import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
+import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
-import org.neo4j.util.index.LuceneIndexService;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.sail.SailRepository;
@@ -53,7 +53,7 @@ public class BatchInserter
 	public static void main( final String[] args ) throws Exception
 	{
 		final NeoService neo = new EmbeddedNeo( "var/neo" );
-		final IndexService indexService = new LuceneIndexService( neo );
+		final IndexService indexService = new CachingLuceneIndexService( neo );
 		VerboseQuadStore store = new VerboseQuadStore( neo, indexService );
 		try
 		{
