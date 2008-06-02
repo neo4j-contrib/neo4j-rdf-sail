@@ -322,6 +322,77 @@ public class NeoSailTest extends NeoTestCase {
         sc.close();
     }
 
+    public void testGetStatementsP_SOG() throws Exception {
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/P_SOG#a");
+        URI uriB = sail.getValueFactory().createURI("http://example.org/test/P_SOG#b");
+        URI uriC = sail.getValueFactory().createURI("http://example.org/test/P_SOG#c");
+        URI marko = sail.getValueFactory().createURI("http://knowledgereefsystems.com/thing/q");
+        URI firstName = sail.getValueFactory().createURI("http://knowledgereefsystems.com/2007/11/core#firstName");
+        Literal plainLitA = sail.getValueFactory().createLiteral("arbitrary plain literal 238445");
+        Literal markoName = sail.getValueFactory().createLiteral("Marko", XMLSchema.STRING);
+        int before, after;
+
+        // Add statement to the implicit null context.
+        sc.removeStatements(null, uriA, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, uriA, null, false));
+        sc.addStatement(uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, uriA, null, false));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // Add plain literal statement to the default context.
+        sc.removeStatements(null, uriA, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, uriA, null, false));
+        sc.addStatement(uriA, uriA, plainLitA);
+        sc.addStatement(uriA, uriB, plainLitA);
+        sc.addStatement(uriB, uriB, plainLitA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, uriA, null, false));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        // Add string-typed literal statement to the default context.
+        sc.removeStatements(null, firstName, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, firstName, null, false));
+        sc.addStatement(marko, firstName, markoName);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, firstName, null, false));
+        assertEquals(0, before);
+        assertEquals(1, after);
+        assertEquals(marko, toSet(sc.getStatements(null, firstName, null, false)).iterator().next().getSubject());
+
+        // Add statement to the a non-null context.
+        sc.removeStatements(null, uriA, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, uriA, null, false));
+        sc.addStatement(uriA, uriA, uriA, uriA);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, uriA, null, false));
+        assertEquals(0, before);
+        assertEquals(1, after);
+
+        /*
+        sc.removeStatements(null, uriA, null);
+        sc.commit();
+        before = countStatements(sc.getStatements(null, uriA, null, false));
+        sc.addStatement(uriB, uriA, uriC, uriC);
+        sc.addStatement(uriC, uriA, uriA, uriA);
+        sc.commit();
+        sc.addStatement(uriA, uriA, uriB, uriB);
+        sc.commit();
+        after = countStatements(sc.getStatements(null, uriA, null, false));
+        assertEquals(0, before);
+        assertEquals(3, after);
+        */
+
+        sc.close();
+    }
+
     public void testGetStatementsWithVariableContexts() throws Exception {
         SailConnection sc = sail.getConnection();
         URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
