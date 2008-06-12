@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.neo4j</groupId>
     <artifactId>neo-rdf-sail</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <name>Neo RDF SAIL</name>
     <description>A Neo RDF Sesame Storage and Inference Layer</description>
 
@@ -26,12 +26,12 @@
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo</artifactId>
-            <version>1.0-rc1-SNAPSHOT</version>
+            <version>1.0-b7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo-rdf</artifactId>
-            <version>0.2-SNAPSHOT</version>
+            <version>0.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.openrdf</groupId>
