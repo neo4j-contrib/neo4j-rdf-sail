@@ -366,7 +366,7 @@ public class NeoSailTest extends NeoTestCase {
         assertEquals(1, after);
         assertEquals(marko, toSet(sc.getStatements(null, firstName, null, false)).iterator().next().getSubject());
 
-        // Add statement to the a non-null context.
+        // Add statement to a non-null context.
         sc.removeStatements(null, uriA, null);
         sc.commit();
         before = countStatements(sc.getStatements(null, uriA, null, false));
@@ -1153,6 +1153,70 @@ public class NeoSailTest extends NeoTestCase {
         assertNull(sc.getNamespace(emptyPrefix));
 
         sc.close();
+    }
+
+    // connections and transactions ////////////////////////////////////////////
+
+    public void testPersistentCommits() throws Exception {
+        SailConnection sc;
+        int count;
+        boolean includeInferred = false;
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/persistentCommits#a");
+
+        sc = sail.getConnection();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        assertEquals(0, count);
+        sc.close();
+        sc = sail.getConnection();
+        sc.addStatement(uriA, uriA, uriA);
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        assertEquals(1, count);
+        sc.commit();
+        sc.close();
+        sc = sail.getConnection();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        assertEquals(1, count);
+        sc.close();
+        sc = sail.getConnection();
+        sc.removeStatements(uriA, null, null);
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        assertEquals(0, count);
+        sc.commit();
+        sc.close();
+        sc = sail.getConnection();
+        count = countStatements(sc.getStatements(uriA, null, null, includeInferred));
+        assertEquals(0, count);
+        sc.close();
+    }
+
+    public void testVisibilityOfChanges() throws Exception {
+        SailConnection sc1, sc2;
+        int count;
+        boolean includeInferred = false;
+        URI uriA = sail.getValueFactory().createURI("http://example.org/test/visibilityOfChanges#a");
+
+        sc1 = sail.getConnection();
+        sc2 = sail.getConnection();
+
+        // Statement doesn't exist for either connection.
+        count = countStatements(sc1.getStatements(uriA, null, null, includeInferred));
+        assertEquals(0, count);
+        count = countStatements(sc2.getStatements(uriA, null, null, includeInferred));
+        assertEquals(0, count);
+
+        // First connection adds a statement.  It is visible to the first
+        // connection, but not to the second.
+        sc1.addStatement(uriA, uriA, uriA);
+        count = countStatements(sc1.getStatements(uriA, null, null, includeInferred));
+        assertEquals(1, count);
+        count = countStatements(sc2.getStatements(uriA, null, null, includeInferred));
+        assertEquals(0, count);
+
+        // ...
+        
+        sc2.close();
+        sc1.close();
+
     }
 
     // TODO: concurrency testing ///////////////////////////////////////////////
