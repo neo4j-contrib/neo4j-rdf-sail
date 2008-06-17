@@ -40,6 +40,9 @@ public abstract class NeoTestCase extends TestCase
         }
         tx = neo().beginTx();
         createIndexServiceIfNeeded();
+        tx.success();
+        tx.finish();
+        tx = neo.beginTx();
     }
 
     private void createIndexServiceIfNeeded()

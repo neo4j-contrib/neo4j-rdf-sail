@@ -8,10 +8,13 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.transaction.Transaction;
+import javax.transaction.TransactionManager;
+
+import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.api.core.Node;
 import org.neo4j.api.core.RelationshipType;
-import org.neo4j.api.core.Transaction;
 import org.neo4j.rdf.model.CompleteStatement;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
@@ -44,13 +47,15 @@ public class NeoSailConnection implements SailConnection
     private static final int DEFAULT_BATCHSIZE = 5000;
 
     private final NeoService neo;
+    private final TransactionManager tm;
     private final RdfStore store;
     private final ValueFactory valueFactory;
     private final Set<SailConnectionListener> sailConnectionListeners = new HashSet<SailConnectionListener>();
     private final Collection<SailChangedListener> sailChangedListeners;
     private final int batchSize;
+    private Transaction transaction;
+    private Transaction otherTx;
     private boolean open;
-    private Transaction currentTransaction;
     private final AtomicInteger writeOperationCount = new AtomicInteger();
     private final Sail sail;
     private final AtomicInteger totalAddCount = new AtomicInteger();
@@ -77,17 +82,76 @@ public class NeoSailConnection implements SailConnection
         this.open = true;
         this.batchSize = batchSize;
         this.sailChangedListeners = sailChangedListeners;
+        this.tm = (( EmbeddedNeo ) neo).getConfig().getTxModule().getTxManager();
+        setupTransaction();
     }
 
-    public boolean isOpen() throws SailException
+    private void setupTransaction() 
+    {
+    	try
+    	{
+    		otherTx = tm.getTransaction();
+    		if ( otherTx != null )
+    		{
+    			tm.suspend();
+    		}
+    		tm.begin();
+    		transaction = tm.getTransaction();
+    		tm.suspend();
+    		if ( otherTx != null )
+    		{
+    			tm.resume( otherTx );
+    		}
+    	}
+    	catch ( Exception e )
+    	{
+    		throw new RuntimeException( e );
+    	}
+	}
+    
+    private void suspendOtherAndResumeThis()
+    {
+    	try
+    	{
+    		otherTx = tm.getTransaction();
+    		if ( otherTx != null )
+    		{
+    			tm.suspend();
+    		}
+    		tm.resume( transaction );
+    	}
+    	catch ( Exception e )
+    	{
+    		throw new RuntimeException( e );
+    	}
+    }
+    
+    private void suspendThisAndResumeOther()
+    {
+    	try
+    	{
+    		tm.suspend();
+    		if ( otherTx != null )
+    		{
+    			tm.resume( otherTx );
+    		}
+    	}
+    	catch ( Exception e )
+    	{
+    		throw new RuntimeException( e );
+    	}
+    }
+
+	public synchronized boolean isOpen() throws SailException
     {
         return open;
     }
 
-    public void close() throws SailException
+    public synchronized void close() throws SailException
     {
         open = false;
         rollback();
+        transaction = null;
     }
     
     public void setIterateResults( boolean iterateResults )
@@ -125,7 +189,7 @@ public class NeoSailConnection implements SailConnection
         return null;
     }
 
-    public CloseableIteration<? extends Statement, SailException> getStatements(final Resource subject,
+    public synchronized CloseableIteration<? extends Statement, SailException> getStatements(final Resource subject,
                                                                                 final URI predicate,
                                                                                 final Value object,
                                                                                 boolean includeInferred,
@@ -136,8 +200,8 @@ public class NeoSailConnection implements SailConnection
             includeInferred = false;
         }
 
-        ensureOpenTransaction();
 //System.out.println("getStatements(" + subject + ", " + predicate + ", " + object + ", " + includeInferred + ", " + contexts );
+        suspendOtherAndResumeThis();
         try {
         	Iterable<CompleteStatement> result = null;
             if (contexts.length == 0) {
@@ -175,6 +239,10 @@ public class NeoSailConnection implements SailConnection
         {
             throw new SailException( e );
         }
+        finally
+        {
+        	suspendThisAndResumeOther();
+        }
     }
 
     // TODO
@@ -183,11 +251,12 @@ public class NeoSailConnection implements SailConnection
         return -1;
     }
 
-    public void addStatement( final Resource subject, final URI predicate,
-        final Value object, final Resource... contexts ) throws SailException
+    public synchronized void addStatement( final Resource subject, 
+    	final URI predicate, final Value object, final Resource... contexts ) 
+    		throws SailException
     {
     	totalAddCount.incrementAndGet();
-        ensureOpenTransaction();
+    	suspendOtherAndResumeThis();
         try
         {
             if ( contexts.length == 0 )
@@ -213,6 +282,10 @@ public class NeoSailConnection implements SailConnection
         {
             e.printStackTrace();
             throw new SailException( e );
+        }
+        finally
+        {
+        	suspendThisAndResumeOther();
         }
 
         if ( sailConnectionListeners.size() > 0 )
@@ -245,10 +318,11 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
-    public void removeStatements( final Resource subject, final URI predicate,
-        final Value object, final Resource... contexts ) throws SailException
+    public synchronized void removeStatements( final Resource subject, 
+    	final URI predicate, final Value object, final Resource... contexts ) 
+    		throws SailException
     {
-        ensureOpenTransaction();
+    	suspendOtherAndResumeThis();
         try
         {
             if ( contexts.length == 0 )
@@ -274,6 +348,11 @@ public class NeoSailConnection implements SailConnection
             e.printStackTrace();
             throw new SailException( e );
         }
+        finally
+        {
+        	suspendThisAndResumeOther();
+        }
+        
         // TODO: wildcard statements are not allowed by ValueFactoryImpl --
         // either create a new ValueFactory class
         // which does allow them, or don't worry about it...
@@ -303,46 +382,61 @@ public class NeoSailConnection implements SailConnection
 //        System.out.println( "NeoSailConnection: commit invoked, at " +
 //            writeOperationCount.get() + " op count (total of " +
 //            totalAddCount.get() + ")" );
-        if ( openTransaction() )
-        {
-            tx().success();
-            tx().finish();
-            clearBatchCommit();
-            currentTransaction = null;
-        }
+    	suspendOtherAndResumeThis();
+    	try
+    	{
+    		transaction.commit();
+    		tm.begin();
+    		transaction = tm.getTransaction();
+    		clearBatchCommit();
+    	}
+    	catch ( Exception e )
+    	{
+    		throw new RuntimeException( e );
+    	}
+    	finally
+    	{
+    		suspendThisAndResumeOther();
+    	}
     }
 
     public synchronized void rollback() throws SailException
     {
 //        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
 //            writeOperationCount.get() + " op count" );        
-        if ( openTransaction() )
-        {
-            tx().finish();
-            clearBatchCommit();
-            currentTransaction = null;
-        }
+    	suspendOtherAndResumeThis();
+    	try
+    	{
+    		transaction.rollback();
+    		tm.begin();
+    		transaction = tm.getTransaction();
+    		clearBatchCommit();
+    	}
+    	catch ( Exception e )
+    	{
+    		throw new RuntimeException( e );
+    	}
+    	finally
+    	{
+    		suspendThisAndResumeOther();
+    	}
     }
 
-    private synchronized void ensureOpenTransaction()
-    {
-        if ( !openTransaction() )
-        {
-            clearBatchCommit();
-            currentTransaction = neo.beginTx();            
-        }
-    }
-    
-    private synchronized boolean openTransaction()
-    {
-        return tx() != null;
-    }
-    
     private synchronized void checkBatchCommit() throws SailException
     {
         if ( writeOperationCount.incrementAndGet() >= batchSize )
         {
-            commit(); // will invoke clearBatchCommit            
+            try
+            {
+            	tm.commit();
+            	tm.begin();
+            	transaction = tm.getTransaction();
+            	clearBatchCommit();
+            }
+            catch ( Exception e )
+            {
+            	throw new RuntimeException( e );
+            }
         }
     }
     
@@ -351,11 +445,6 @@ public class NeoSailConnection implements SailConnection
         writeOperationCount.set( 0 );
     }
     
-    private Transaction tx()
-    {
-        return currentTransaction;
-    }
-
     public void clear( final Resource... contexts ) throws SailException
     {
         // TODO
@@ -367,34 +456,33 @@ public class NeoSailConnection implements SailConnection
         return new NeoNamespaceIteration( getNamespaceNode(), neo );
     }
 
-    public String getNamespace( final String prefix ) throws SailException
+    public synchronized String getNamespace( final String prefix ) 
+    	throws SailException
     {
-        Transaction tx = neo.beginTx();
+    	suspendOtherAndResumeThis();
         try
         {
             String uri = ( String ) getNamespaceNode().getProperty( prefix,
                 null );
-            tx.success();
             return uri;
         }
         finally
         {
-            tx.finish();
+        	suspendThisAndResumeOther();
         }
     }
 
-    public void setNamespace( final String prefix, final String uri )
+    public synchronized void setNamespace( final String prefix, final String uri )
         throws SailException
     {
-        Transaction tx = neo.beginTx();
+    	suspendOtherAndResumeThis();
         try
         {
             getNamespaceNode().setProperty( prefix, uri );
-            tx.success();
         }
         finally
         {
-            tx.finish();
+        	suspendThisAndResumeOther();
         }
     }
 
@@ -404,31 +492,30 @@ public class NeoSailConnection implements SailConnection
             .getOrCreateSubReferenceNode( NeoSailRelTypes.REF_TO_NAMESPACE );
     }
 
-    public void removeNamespace( final String prefix ) throws SailException
+    public synchronized void removeNamespace( final String prefix ) 
+    	throws SailException
     {
-        Transaction tx = neo.beginTx();
+    	suspendOtherAndResumeThis();
         try
         {
             getNamespaceNode().removeProperty( prefix );
-            tx.success();
         }
         finally
         {
-            tx.finish();
+        	suspendThisAndResumeOther();
         }
     }
 
-    public void clearNamespaces() throws SailException
+    public synchronized void clearNamespaces() throws SailException
     {
-        Transaction tx = neo.beginTx();
+    	suspendOtherAndResumeThis();
         try
         {
             getNamespaceNode().delete();
-            tx.success();
         }
         finally
         {
-            tx.finish();
+        	suspendThisAndResumeOther();
         }
     }
 
