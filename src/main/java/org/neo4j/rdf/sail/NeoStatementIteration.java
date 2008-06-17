@@ -13,10 +13,14 @@ import java.util.Iterator;
  * Time: 7:10:31 PM
  */
 public class NeoStatementIteration implements CloseableIteration<Statement, SailException> {
-    private final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator;
 
-    public NeoStatementIteration(final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator) {
+    private final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator;
+    private final NeoSailConnection connection;
+    
+    public NeoStatementIteration(final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator, 
+        final NeoSailConnection connection ) {
         this.iterator = iterator;
+        this.connection = connection;
     }
 
     public void close() throws SailException {
@@ -24,15 +28,32 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
     }
 
     public boolean hasNext() throws SailException {
-        return iterator.hasNext();
+        connection.suspendOtherAndResumeThis();
+        try
+        {
+            return iterator.hasNext();
+        }
+        finally
+        {
+            connection.suspendThisAndResumeOther();
+        }
     }
 
-    public Statement next() throws SailException {
-        org.neo4j.rdf.model.CompleteStatement statement = iterator.next();
-//System.out.println("retrieved a statement: " + statement);
-        return (null == statement)
-                // TODO: would be better here if iterator were an Iterator<CompleteStatement>
-                ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);
+    public Statement next() throws SailException 
+    {
+        connection.suspendOtherAndResumeThis();
+        try
+        {
+            org.neo4j.rdf.model.CompleteStatement statement = iterator.next();
+    //System.out.println("retrieved a statement: " + statement);
+            return (null == statement)
+                    // TODO: would be better here if iterator were an Iterator<CompleteStatement>
+                    ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);
+        }
+        finally
+        {
+            connection.suspendThisAndResumeOther();
+        }
     }
 
     public void remove() throws SailException {

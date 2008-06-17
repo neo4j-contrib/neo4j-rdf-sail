@@ -109,7 +109,7 @@ public class NeoSailConnection implements SailConnection
     	}
 	}
     
-    private void suspendOtherAndResumeThis()
+    void suspendOtherAndResumeThis()
     {
     	try
     	{
@@ -126,7 +126,7 @@ public class NeoSailConnection implements SailConnection
     	}
     }
     
-    private void suspendThisAndResumeOther()
+    void suspendThisAndResumeOther()
     {
     	try
     	{
@@ -233,7 +233,7 @@ public class NeoSailConnection implements SailConnection
 	            }
 	            result = statements;
             }
-            return new NeoStatementIteration( result.iterator() );
+            return new NeoStatementIteration( result.iterator(), this );
         }
         catch ( RuntimeException e )
         {
