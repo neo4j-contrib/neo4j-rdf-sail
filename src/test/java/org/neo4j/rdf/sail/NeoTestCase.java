@@ -94,21 +94,20 @@ public abstract class NeoTestCase extends TestCase
 
     protected void deleteEntireNodeSpace()
     {
-//        tx.success();
-//        tx.finish();
-//        try
-//        {
-//            Thread.sleep( 500 );
-//        }
-//        catch ( InterruptedException e )
-//        {
-//        }
-//        tx = neo.beginTx();
-        for ( Relationship rel : neo().getReferenceNode().getRelationships() )
+        Transaction tx = neo.beginTx();
+        try
         {
-            Node node = rel.getOtherNode( neo().getReferenceNode() );
-            rel.delete();
-            new EntireGraphDeletor().delete( node );
+            for ( Relationship rel : neo().getReferenceNode().getRelationships() )
+            {
+                Node node = rel.getOtherNode( neo().getReferenceNode() );
+                rel.delete();
+                new EntireGraphDeletor().delete( node );
+            }
+            tx.success();
+        }
+        finally
+        {
+            tx.finish();
         }
     }
 
