@@ -151,6 +151,15 @@ public class NeoSailConnection implements SailConnection
     {
         open = false;
         rollback();
+        suspendOtherAndResumeThis();
+        try
+        {
+            tm.commit();
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
         transaction = null;
     }
     
