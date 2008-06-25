@@ -16,6 +16,8 @@ import org.neo4j.api.core.NeoService;
 import org.neo4j.api.core.Node;
 import org.neo4j.api.core.RelationshipType;
 import org.neo4j.rdf.model.CompleteStatement;
+import org.neo4j.rdf.model.Context;
+import org.neo4j.rdf.sail.utils.ContextHandling;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.util.CombiningIterable;
@@ -254,10 +256,14 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
-    // TODO
     public long size( final Resource... contexts ) throws SailException
     {
-        return -1;
+        Context[] neoContexts = new Context[ contexts.length ];
+        for ( int i = 0; i < contexts.length; i++ )
+        {
+        	neoContexts[ i ] = ContextHandling.createContext( contexts[ i ] );
+        }
+        return store.size( neoContexts );
     }
 
     public synchronized void addStatement( final Resource subject, 
