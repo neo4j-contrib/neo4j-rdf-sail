@@ -7,6 +7,7 @@ import java.util.Map;
 import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.api.core.Node;
+import org.neo4j.api.core.Relationship;
 import org.neo4j.api.core.Transaction;
 
 public class ConfiguredNeoServiceBase implements NeoService
@@ -63,6 +64,11 @@ public class ConfiguredNeoServiceBase implements NeoService
     public Node getNodeById( long id )
     {
         return neo().getNodeById( id );
+    }
+    
+    public Relationship getRelationshipById( long id )
+    {
+    	return neo().getRelationshipById( id );
     }
 
     public Node getReferenceNode()
