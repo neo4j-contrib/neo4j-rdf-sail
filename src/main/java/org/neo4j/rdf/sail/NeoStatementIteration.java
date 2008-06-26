@@ -16,6 +16,7 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
 
     private final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator;
     private final NeoSailConnection connection;
+    private Statement nextStatement;
     
     public NeoStatementIteration(final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator, 
         final NeoSailConnection connection ) {
@@ -28,10 +29,19 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
     }
 
     public boolean hasNext() throws SailException {
+    	if ( nextStatement != null )
+    	{
+    		return true;
+    	}
+    	
         connection.suspendOtherAndResumeThis();
         try
         {
-            return iterator.hasNext();
+            if ( iterator.hasNext() )
+            {
+            	nextStatement = fetchNextStatement();
+            }
+            return nextStatement != null;
         }
         finally
         {
@@ -41,19 +51,22 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
 
     public Statement next() throws SailException 
     {
-        connection.suspendOtherAndResumeThis();
-        try
-        {
-            org.neo4j.rdf.model.CompleteStatement statement = iterator.next();
-    //System.out.println("retrieved a statement: " + statement);
-            return (null == statement)
-                    // TODO: would be better here if iterator were an Iterator<CompleteStatement>
-                    ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);
-        }
-        finally
-        {
-            connection.suspendThisAndResumeOther();
-        }
+    	if ( !hasNext() )
+    	{
+    		throw new IllegalStateException();
+    	}
+    	Statement result = nextStatement;
+    	nextStatement = null;
+    	return result;
+    }
+    
+    private Statement fetchNextStatement() throws SailException
+    {
+        org.neo4j.rdf.model.CompleteStatement statement = iterator.next();
+        //System.out.println("retrieved a statement: " + statement);
+                return (null == statement)
+                        // TODO: would be better here if iterator were an Iterator<CompleteStatement>
+                        ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);
     }
 
     public void remove() throws SailException {
