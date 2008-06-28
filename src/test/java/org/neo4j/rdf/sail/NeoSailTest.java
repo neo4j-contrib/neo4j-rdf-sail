@@ -512,24 +512,40 @@ public class NeoSailTest extends NeoTestCase {
         // TODO
     }
 
-    // TODO: support SailConnection.size(), even if the implementation is slow
-//    public void testSize() throws Exception {
-//        URI ctxQ = sail.getValueFactory().createURI("http://example.org/ctxQ");
-//
-//        SailConnection sc = sail.getConnection();
-//        sc.removeStatements(null, null, null, ctxQ);
-//
-//        long count, before = sc.size();
-//        assertTrue(before > 0);
-//        sc.addStatement(ctxQ, ctxQ, ctxQ, ctxQ);
+    public void testSize() throws Exception {
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
+        URI uriB = sail.getValueFactory().createURI("http://example.org/uriB");
+        URI uriC = sail.getValueFactory().createURI("http://example.org/uriC");
+
+        SailConnection sc = sail.getConnection();
+        sc.removeStatements(null, null, null);
+
+        assertEquals(0, sc.size());
+        sc.addStatement(uriA, uriA, uriA, uriA);
 //        sc.commit();
-//        assertEquals(before + 1, sc.size());
-//        sc.removeStatements(ctxQ, ctxQ, ctxQ, ctxQ);
+        assertEquals(1, sc.size());
+        sc.addStatement(uriA, uriA, uriA, uriB);
 //        sc.commit();
-//        assertEquals(before, sc.size());
-//
-//        sc.close();
-//    }
+        assertEquals(2, sc.size());
+        sc.addStatement(uriB, uriB, uriB, uriB);
+//        sc.commit();
+        assertEquals(3, sc.size());
+        sc.addStatement(uriC, uriC, uriC);
+//        sc.commit();
+        assertEquals(4, sc.size());
+        
+        assertEquals(1, sc.size(uriA));
+        assertEquals(2, sc.size(uriB));
+        assertEquals(0, sc.size(uriC));
+        assertEquals(1, sc.size(null));
+        assertEquals(3, sc.size(uriB, null));
+        assertEquals(3, sc.size(uriB, uriC, null));
+        assertEquals(4, sc.size(uriA, uriB, null));
+        assertEquals(4, sc.size(uriA, uriB, uriC, null));
+        assertEquals(3, sc.size(uriA, uriB));
+
+        sc.close();
+    }
 
     // URIs ////////////////////////////////////////////////////////////////////
 
