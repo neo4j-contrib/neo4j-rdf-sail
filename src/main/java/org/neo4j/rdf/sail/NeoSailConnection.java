@@ -115,33 +115,39 @@ public class NeoSailConnection implements SailConnection
     {
     	try
     	{
-    		otherTx = tm.getTransaction();
-    		if ( otherTx != null )
-    		{
-    			tm.suspend();
-    		}
-    		tm.resume( transaction );
+    	    Transaction currentTx = tm.getTransaction();
+    	    if ( currentTx == transaction )
+            {
+                otherTx = null;
+                return;
+            }
+            else
+            {
+                otherTx = currentTx;
+                tm.suspend();
+            }
+    	    tm.resume( transaction );
     	}
     	catch ( Exception e )
     	{
-    		throw new RuntimeException( e );
+    	    throw new RuntimeException( e );
     	}
     }
     
     void suspendThisAndResumeOther()
     {
-    	try
-    	{
-    		tm.suspend();
-    		if ( otherTx != null )
-    		{
-    			tm.resume( otherTx );
-    		}
-    	}
-    	catch ( Exception e )
-    	{
-    		throw new RuntimeException( e );
-    	}
+        try
+        {
+            if ( otherTx != null )
+            {
+                tm.suspend();
+                tm.resume( otherTx );
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 
 	public synchronized boolean isOpen() throws SailException
