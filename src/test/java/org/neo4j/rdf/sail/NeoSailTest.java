@@ -519,32 +519,36 @@ public class NeoSailTest extends NeoTestCase {
 
         SailConnection sc = sail.getConnection();
         sc.removeStatements(null, null, null);
-
-        assertEquals(0, sc.size());
-        sc.addStatement(uriA, uriA, uriA, uriA);
-//        sc.commit();
-        assertEquals(1, sc.size());
-        sc.addStatement(uriA, uriA, uriA, uriB);
-//        sc.commit();
-        assertEquals(2, sc.size());
-        sc.addStatement(uriB, uriB, uriB, uriB);
-//        sc.commit();
-        assertEquals(3, sc.size());
-        sc.addStatement(uriC, uriC, uriC);
-//        sc.commit();
-        assertEquals(4, sc.size());
-        
-        assertEquals(1, sc.size(uriA));
-        assertEquals(2, sc.size(uriB));
-        assertEquals(0, sc.size(uriC));
-        assertEquals(1, sc.size(null));
-        assertEquals(3, sc.size(uriB, null));
-        assertEquals(3, sc.size(uriB, uriC, null));
-        assertEquals(4, sc.size(uriA, uriB, null));
-        assertEquals(4, sc.size(uriA, uriB, uriC, null));
-        assertEquals(3, sc.size(uriA, uriB));
-
-        sc.close();
+        try
+        {
+            assertEquals(0, sc.size());
+            sc.addStatement(uriA, uriA, uriA, uriA);
+    //        sc.commit();
+            assertEquals(1, sc.size());
+            sc.addStatement(uriA, uriA, uriA, uriB);
+    //        sc.commit();
+            assertEquals(2, sc.size());
+            sc.addStatement(uriB, uriB, uriB, uriB);
+    //        sc.commit();
+            assertEquals(3, sc.size());
+            sc.addStatement(uriC, uriC, uriC);
+    //        sc.commit();
+            assertEquals(4, sc.size());
+            
+            assertEquals(1, sc.size(uriA));
+            assertEquals(2, sc.size(uriB));
+            assertEquals(0, sc.size(uriC));
+            assertEquals(1, sc.size(null));
+            assertEquals(3, sc.size(uriB, null));
+            assertEquals(3, sc.size(uriB, uriC, null));
+            assertEquals(4, sc.size(uriA, uriB, null));
+            assertEquals(4, sc.size(uriA, uriB, uriC, null));
+            assertEquals(3, sc.size(uriA, uriB));
+        }
+        finally
+        {
+            sc.close();
+        }
     }
 
     // URIs ////////////////////////////////////////////////////////////////////

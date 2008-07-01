@@ -149,6 +149,22 @@ public class NeoSailConnection implements SailConnection
             throw new RuntimeException( e );
         }
     }
+    
+    private void resumeOther()
+    {
+        assert transaction == null;
+        try
+        {
+            if ( otherTx != null )
+            {
+                tm.resume( otherTx );
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
 
 	public synchronized boolean isOpen() throws SailException
     {
@@ -168,7 +184,11 @@ public class NeoSailConnection implements SailConnection
         {
             throw new RuntimeException( e );
         }
-        transaction = null;
+        finally
+        {
+            transaction = null;
+            resumeOther();
+        }
     }
     
     public void setIterateResults( boolean iterateResults )
@@ -264,12 +284,20 @@ public class NeoSailConnection implements SailConnection
 
     public long size( final Resource... contexts ) throws SailException
     {
-        Context[] neoContexts = new Context[ contexts.length ];
-        for ( int i = 0; i < contexts.length; i++ )
+        suspendOtherAndResumeThis();
+        try
         {
-        	neoContexts[ i ] = ContextHandling.createContext( contexts[ i ] );
+            Context[] neoContexts = new Context[ contexts.length ];
+            for ( int i = 0; i < contexts.length; i++ )
+            {
+            	neoContexts[ i ] = ContextHandling.createContext( contexts[ i ] );
+            }
+            return store.size( neoContexts );
         }
-        return store.size( neoContexts );
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
     }
 
     public synchronized void addStatement( final Resource subject, 
