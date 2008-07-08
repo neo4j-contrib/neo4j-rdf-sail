@@ -434,7 +434,7 @@ public class NeoSailConnection implements SailConnection
     	suspendOtherAndResumeThis();
     	try
     	{
-    		transaction.commit();
+    		tm.commit();
     		tm.begin();
     		transaction = tm.getTransaction();
     		clearBatchCommit();
