@@ -496,7 +496,7 @@ public class NeoSailConnection implements SailConnection
     
     public void clear( final Resource... contexts ) throws SailException
     {
-        // TODO
+        removeStatements( null, null, null, contexts );
     }
 
     public CloseableIteration<? extends Namespace, SailException> getNamespaces()

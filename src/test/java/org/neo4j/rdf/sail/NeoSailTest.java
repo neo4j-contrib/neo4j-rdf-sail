@@ -508,6 +508,43 @@ public class NeoSailTest extends NeoTestCase {
         sc.close();
     }
 
+    public void testClear() throws Exception {
+        URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
+        URI uriB = sail.getValueFactory().createURI("http://example.org/uriB");
+        URI uriC = sail.getValueFactory().createURI("http://example.org/uriC");
+
+        SailConnection sc = sail.getConnection();
+        sc.clear();
+
+        assertEquals( 0, sc.size() );
+        sc.addStatement(uriA, uriB, uriA, uriA);
+        sc.addStatement(uriA, uriB, uriB, uriA);
+        sc.addStatement(uriA, uriB, uriC, uriA);
+        assertEquals(3, sc.size(uriA));
+        sc.addStatement(uriA, uriB, uriC, uriB);
+        sc.addStatement(uriA, uriB, uriC, uriB);
+        assertEquals(2, sc.size(uriB));
+        sc.addStatement(uriA, uriB, uriC);
+        assertEquals(1, sc.size(null));
+        sc.addStatement(uriA, uriB, uriA, uriC);
+        sc.addStatement(uriA, uriB, uriB, uriC);
+        sc.addStatement(uriA, uriB, uriC, uriC);
+        sc.addStatement(uriC, uriB, uriC, uriC);
+        assertEquals(4, sc.size(uriC));
+        assertEquals(10, sc.size());
+
+        sc.clear(uriA, uriC);
+        assertEquals(1, sc.size(null));
+        assertEquals(0, sc.size(uriA));
+        assertEquals(2, sc.size(uriB));
+        assertEquals(0, sc.size(uriC));
+        assertEquals(3, sc.size());
+        sc.clear();
+        assertEquals(0, sc.size());
+
+        sc.close();
+    }
+
     public void testGetContextIDs() throws Exception {
         // TODO
     }
