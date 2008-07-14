@@ -1,5 +1,6 @@
 package org.neo4j.rdf.sail.utils;
 
+import org.neo4j.rdf.model.Context;
 import org.neo4j.rdf.model.Wildcard;
 import org.openrdf.model.Resource;
 
@@ -23,5 +24,20 @@ public class ContextHandling {
             throw new IllegalArgumentException("Can only have zero or one context");
         }
         return context;
+    }
+    
+    public static org.neo4j.rdf.model.Context[] createContexts( final Resource... resources )
+    {
+    	if ( resources == null )
+    	{
+    		return new Context[] { org.neo4j.rdf.model.Context.NULL };
+    	}
+    	
+        Context[] neoContexts = new Context[ resources.length ];
+        for ( int i = 0; i < resources.length; i++ )
+        {
+        	neoContexts[ i ] = createContext( resources[ i ] );
+        }
+        return neoContexts;
     }
 }

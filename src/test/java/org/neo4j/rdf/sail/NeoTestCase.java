@@ -1,9 +1,12 @@
 package org.neo4j.rdf.sail;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import junit.framework.TestCase;
 
 import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
@@ -13,14 +16,30 @@ import org.neo4j.api.core.Transaction;
 import org.neo4j.util.EntireGraphDeletor;
 import org.neo4j.util.index.IndexService;
 
-import junit.framework.TestCase;
-
 public abstract class NeoTestCase extends TestCase
 {
     private static NeoService neo;
     private IndexService indexService = null;
 
     private Transaction tx;
+    
+    private void removeDir( File dir )
+    {
+    	if ( dir.exists() )
+    	{
+    		for ( File file : dir.listFiles() )
+    		{
+    			if ( file.isDirectory() )
+    			{
+    				removeDir( file );
+    			}
+    			else
+    			{
+    				file.delete();
+    			}
+    		}
+    	}
+    }
 
     @Override
     protected void setUp() throws Exception
@@ -28,7 +47,9 @@ public abstract class NeoTestCase extends TestCase
         super.setUp();        
         if ( neo == null )
         {
-            neo = new EmbeddedNeo( "var/test/neo" );
+        	String dir = "var/test/neo";
+        	removeDir( new File( dir ) );
+            neo = new EmbeddedNeo( dir );
             Runtime.getRuntime().addShutdownHook( new Thread()
             {
                 @Override
@@ -52,7 +73,7 @@ public abstract class NeoTestCase extends TestCase
             setIndexService( instantiateIndexService() );
         }
     }
-
+    
     @Override
     protected void tearDown() throws Exception
     {

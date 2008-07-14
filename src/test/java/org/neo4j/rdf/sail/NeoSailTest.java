@@ -102,9 +102,9 @@ public class NeoSailTest extends NeoTestCase {
         sail.initialize();
         Repository repo = new SailRepository(sail);
         RepositoryConnection rc = repo.getConnection();
-        rc.add(NeoSailTest.class.getResource("neoSailTest.trig"), "", RDFFormat.TRIG);
-        rc.commit();
-        rc.close();
+    	rc.add(NeoSailTest.class.getResource("neoSailTest.trig"), "", RDFFormat.TRIG);
+    	rc.commit();
+    	rc.close();
     }
 
     // statement manipulation //////////////////////////////////////////////////
@@ -509,11 +509,14 @@ public class NeoSailTest extends NeoTestCase {
     }
 
     public void testClear() throws Exception {
+    	SailConnection sc = null;
+    	try
+    	{
         URI uriA = sail.getValueFactory().createURI("http://example.org/uriA");
         URI uriB = sail.getValueFactory().createURI("http://example.org/uriB");
         URI uriC = sail.getValueFactory().createURI("http://example.org/uriC");
 
-        SailConnection sc = sail.getConnection();
+        sc = sail.getConnection();
         sc.clear();
 
         assertEquals( 0, sc.size() );
@@ -541,8 +544,11 @@ public class NeoSailTest extends NeoTestCase {
         assertEquals(3, sc.size());
         sc.clear();
         assertEquals(0, sc.size());
-
-        sc.close();
+    	}
+    	finally
+    	{
+    		sc.close();
+    	}
     }
 
     public void testGetContextIDs() throws Exception {
