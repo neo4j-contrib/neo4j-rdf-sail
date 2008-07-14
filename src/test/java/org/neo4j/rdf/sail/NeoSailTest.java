@@ -524,7 +524,7 @@ public class NeoSailTest extends NeoTestCase {
         sc.addStatement(uriA, uriB, uriB, uriA);
         sc.addStatement(uriA, uriB, uriC, uriA);
         assertEquals(3, sc.size(uriA));
-        sc.addStatement(uriA, uriB, uriC, uriB);
+        sc.addStatement(uriA, uriB, uriA, uriB);
         sc.addStatement(uriA, uriB, uriC, uriB);
         assertEquals(2, sc.size(uriB));
         sc.addStatement(uriA, uriB, uriC);
