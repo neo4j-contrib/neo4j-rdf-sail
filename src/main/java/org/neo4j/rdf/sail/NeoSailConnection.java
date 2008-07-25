@@ -137,11 +137,11 @@ public class NeoSailConnection implements SailConnection
     {
         try
         {
-            if ( otherTx != null )
-            {
+//            if ( otherTx != null )
+//            {
                 tm.suspend();
                 tm.resume( otherTx );
-            }
+//            }
         }
         catch ( Exception e )
         {
