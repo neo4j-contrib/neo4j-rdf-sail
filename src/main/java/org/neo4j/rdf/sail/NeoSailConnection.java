@@ -281,7 +281,7 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
-    public long size( final Resource... contexts ) throws SailException
+    public synchronized long size( final Resource... contexts ) throws SailException
     {
         suspendOtherAndResumeThis();
         try
