@@ -124,8 +124,8 @@ public class NeoSailConnection implements SailConnection
             {
                 otherTx = currentTx;
                 tm.suspend();
+                tm.resume( transaction );
             }
-    	    tm.resume( transaction );
     	}
     	catch ( Exception e )
     	{
