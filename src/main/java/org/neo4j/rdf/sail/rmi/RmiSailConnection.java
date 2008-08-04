@@ -1,0 +1,59 @@
+package org.neo4j.rdf.sail.rmi;
+
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+import org.openrdf.model.Namespace;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.Dataset;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.sail.SailException;
+
+interface RmiSailConnection extends Remote
+{
+	void addStatement( Resource subj, URI pred, Value obj, Resource[] contexts )
+	    throws SailException, RemoteException;
+
+	void clear( Resource[] contexts ) throws SailException, RemoteException;
+
+	void clearNamespaces() throws SailException, RemoteException;
+
+	void close() throws SailException, RemoteException;
+
+	void commit() throws SailException, RemoteException;
+
+	String getNamespace( String prefix ) throws SailException, RemoteException;
+
+	boolean isOpen() throws SailException, RemoteException;
+
+	void removeNamespace( String prefix ) throws SailException, RemoteException;
+
+	void removeStatements( Resource subj, URI pred, Value obj,
+	    Resource[] contexts ) throws SailException, RemoteException;
+
+	void rollback() throws SailException, RemoteException;
+
+	void setNamespace( String prefix, String name ) throws SailException,
+	    RemoteException;
+
+	long size( Resource[] contexts ) throws SailException, RemoteException;
+
+	RmiIterationBuffer<? extends BindingSet, QueryEvaluationException> evaluate(
+	    TupleExpr tupleExpr, Dataset dataset, BindingSet bindings,
+	    boolean includeInferred ) throws SailException, RemoteException;
+
+	RmiIterationBuffer<? extends Resource, SailException> getContextIDs()
+	    throws SailException, RemoteException;
+
+	RmiIterationBuffer<? extends Namespace, SailException> getNamespaces()
+	    throws SailException, RemoteException;
+
+	RmiIterationBuffer<? extends Statement, SailException> getStatements(
+	    Resource subj, URI pred, Value obj, boolean includeInferred,
+	    Resource[] contexts ) throws SailException, RemoteException;
+}

@@ -66,7 +66,7 @@ public class BatchInserter
 		}
 	}
 	
-	private static File[] listFiles( final String[] args )
+	public static File[] listFiles( final String[] args )
 	{
 		ArrayList<File> files = new ArrayList<File>();
 		if ( args.length == 0 )
