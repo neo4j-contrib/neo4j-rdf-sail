@@ -39,14 +39,6 @@ public class NeoTestUtils
 		String dir = "var/test/neo";
 		removeDir( new File( dir ) );
 		final NeoService neo = new EmbeddedNeo( dir );
-		Runtime.getRuntime().addShutdownHook( new Thread()
-		{
-			@Override
-			public void run()
-			{
-				neo.shutdown();
-			}
-		} );
 		return neo;
 	}
 

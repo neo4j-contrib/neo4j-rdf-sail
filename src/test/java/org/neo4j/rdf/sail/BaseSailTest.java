@@ -1,25 +1,24 @@
 package org.neo4j.rdf.sail;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
-
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.api.core.NeoService;
-import org.neo4j.api.core.Transaction;
-import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
-import org.neo4j.util.index.NeoIndexService;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -46,8 +45,6 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
-import static org.junit.Assert.*;
-
 public abstract class BaseSailTest
 {
 	private Sail sail = null;
@@ -66,15 +63,12 @@ public abstract class BaseSailTest
 		rc.close();
 	}
 
-	protected static final RdfStore createStore( NeoService neo )
+	protected static final RdfStore createStore( NeoService neo, 
+        IndexService indexService )
 	{
-		Transaction tx = neo.beginTx();
-		IndexService indexService = new CachingLuceneIndexService( neo );
-		tx.success();
-		tx.finish();
 		return new VerboseQuadStore( neo, indexService, null );
 	}
-
+    
 	protected abstract void before() throws Exception;
 
 	protected abstract void after() throws Exception;
@@ -82,9 +76,9 @@ public abstract class BaseSailTest
 	@After
 	public final void tearDown() throws Exception
 	{
-		after();
 		tearDownSail();
 		deleteEntireNodeSpace();
+        after();
 	}
 
 	protected abstract void deleteEntireNodeSpace() throws Exception;

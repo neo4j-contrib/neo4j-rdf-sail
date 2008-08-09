@@ -2,9 +2,11 @@ package org.neo4j.rdf.sail;
 
 import info.aduna.iteration.CloseableIteration;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,6 +17,7 @@ import org.neo4j.api.core.EmbeddedNeo;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.api.core.Node;
 import org.neo4j.api.core.RelationshipType;
+import org.neo4j.impl.transaction.DeadlockDetectedException;
 import org.neo4j.rdf.model.CompleteStatement;
 import org.neo4j.rdf.sail.utils.ContextHandling;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
@@ -46,7 +49,10 @@ import org.openrdf.sail.helpers.DefaultSailChangedEvent;
 public class NeoSailConnection implements SailConnection
 {
     private static final int DEFAULT_BATCHSIZE = 5000;
-
+    // number of times to retry work in a transaction if deadlock detected
+    private static final int NUMBER_OF_RETRIES = 5;
+    
+    
     private final NeoService neo;
     private final TransactionManager tm;
     private final RdfStore store;
@@ -62,6 +68,8 @@ public class NeoSailConnection implements SailConnection
     private final AtomicInteger totalAddCount = new AtomicInteger();
     private boolean iterateResults;
 
+    private final List<Command> commands = new ArrayList<Command>(); 
+    
     private enum NeoSailRelTypes implements RelationshipType
     {
         REF_TO_NAMESPACE
@@ -173,6 +181,7 @@ public class NeoSailConnection implements SailConnection
     public synchronized void close() throws SailException
     {
         open = false;
+        commands.clear();
         rollback();
         suspendOtherAndResumeThis();
         try
@@ -300,26 +309,16 @@ public class NeoSailConnection implements SailConnection
     {
     	totalAddCount.incrementAndGet();
     	suspendOtherAndResumeThis();
+        commands.add( new Command( CommandType.ADD_STATEMENT, subject, 
+            predicate, object, contexts ) );
         try
         {
-            if ( contexts.length == 0 )
-            {
-                org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper
-                    .createCompleteStatement( subject, predicate, object,
-                        ( Resource ) null );
-                store.addStatements( statement );
-            }
-            else
-            {
-                for ( Resource context : contexts )
-                {
-                    org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper
-                        .createCompleteStatement( subject, predicate, object,
-                            context );
-                    store.addStatements( statement );
-                }
-            }
+            internalAddStatement( subject, predicate, object, contexts );
             checkBatchCommit();
+        }
+        catch ( DeadlockDetectedException e )
+        {
+            handleDeadlockDetected( e );
         }
         catch ( RuntimeException e )
         {
@@ -361,30 +360,43 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
+    private void internalAddStatement( final Resource subject, 
+        final URI predicate, final Value object, final Resource... contexts ) 
+    {
+        if ( contexts.length == 0 )
+        {
+            org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper
+                .createCompleteStatement( subject, predicate, object,
+                    ( Resource ) null );
+            store.addStatements( statement );
+        }
+        else
+        {
+            for ( Resource context : contexts )
+            {
+                org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper
+                    .createCompleteStatement( subject, predicate, object,
+                        context );
+                store.addStatements( statement );
+            }
+        }
+    }
+
     public synchronized void removeStatements( final Resource subject, 
     	final URI predicate, final Value object, final Resource... contexts ) 
     		throws SailException
     {
     	suspendOtherAndResumeThis();
+        commands.add( new Command( CommandType.REMOVE_STATEMENT, subject, 
+            predicate, object, contexts ) );
         try
         {
-            if ( contexts.length == 0 )
-            {
-                org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
-                    .createWildcardStatement( subject, predicate, object );
-                store.removeStatements( statement );
-            }
-            else
-            {
-                for ( Resource context : contexts )
-                {
-                    org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
-                        .createWildcardStatement( subject, predicate, object,
-                            context );
-                    store.removeStatements( statement );
-                }
-            }
+            internalRemoveStatements( subject, predicate, object, contexts );
             checkBatchCommit();
+        }
+        catch ( DeadlockDetectedException e )
+        {
+            handleDeadlockDetected( e );
         }
         catch ( RuntimeException e )
         {
@@ -420,6 +432,70 @@ public class NeoSailConnection implements SailConnection
         }
     }
 
+    private void internalRemoveStatements( final Resource subject, 
+        final URI predicate, final Value object, final Resource... contexts ) 
+    {
+        if ( contexts.length == 0 )
+        {
+            org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
+                .createWildcardStatement( subject, predicate, object );
+            store.removeStatements( statement );
+        }
+        else
+        {
+            for ( Resource context : contexts )
+            {
+                org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
+                    .createWildcardStatement( subject, predicate, object,
+                        context );
+                store.removeStatements( statement );
+            }
+        }
+    }
+    
+    private void handleDeadlockDetected( DeadlockDetectedException dde )
+    {
+        for ( int i = 0; i < NUMBER_OF_RETRIES; i++ )
+        {
+            try
+            {
+                transaction.rollback();
+                tm.begin();
+                transaction = tm.getTransaction();
+            }
+            catch( Exception e )
+            {
+                dde.printStackTrace();
+                throw new RuntimeException( 
+                    "Problem during rollback/begin transaction handling DDE", 
+                    e );
+            }
+            try
+            {
+                for ( Command c : commands )
+                {
+                    if ( c.getType() == CommandType.ADD_STATEMENT )
+                    {
+                        internalAddStatement( c.getSubject(), c.getPredicate(), 
+                            c.getObject(), c.getContexts() );
+                    }
+                    else if ( c.getType() == CommandType.REMOVE_STATEMENT )
+                    {
+                        internalRemoveStatements( c.getSubject(), 
+                            c.getPredicate(), c.getObject(), c.getContexts() );
+                    }
+                }
+                // success
+                return;
+            }
+            catch ( DeadlockDetectedException e )
+            {
+                // ok we failed again
+            }
+        }
+        throw new RuntimeException( "Failed to handle DDE", dde );
+    }
+    
     public synchronized void commit() throws SailException
     {
 //        System.out.println( "NeoSailConnection: commit invoked, at " +
@@ -447,7 +523,7 @@ public class NeoSailConnection implements SailConnection
     {
 //        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
 //            writeOperationCount.get() + " op count" );        
-    	suspendOtherAndResumeThis();
+        suspendOtherAndResumeThis();
     	try
     	{
     		transaction.rollback();
@@ -485,6 +561,7 @@ public class NeoSailConnection implements SailConnection
     
     private synchronized void clearBatchCommit()
     {
+        commands.clear();
         writeOperationCount.set( 0 );
     }
     
@@ -575,6 +652,57 @@ public class NeoSailConnection implements SailConnection
         synchronized (sailConnectionListeners)
         {
             sailConnectionListeners.remove( listener );
+        }
+    }
+    
+    private static enum CommandType
+    {
+        ADD_STATEMENT,
+        REMOVE_STATEMENT
+    }
+    
+    private static class Command
+    {
+        private final CommandType type;
+        private final Resource subject; 
+        private final URI predicate;
+        private final Value object;
+        private final Resource[] contexts;
+        
+        Command( final CommandType type, final Resource subject, 
+            final URI predicate, final Value object, 
+            final Resource... contexts  )
+        {
+            this.type = type;
+            this.subject = subject;
+            this.predicate = predicate;
+            this.object = object;
+            this.contexts = contexts;
+        }
+        
+        CommandType getType()
+        {
+            return type;
+        }
+        
+        Resource getSubject()
+        {
+            return subject;
+        }
+        
+        URI getPredicate()
+        {
+            return predicate;
+        }
+        
+        Value getObject()
+        {
+            return object;
+        }
+        
+        Resource[] getContexts()
+        {
+            return contexts;
         }
     }
 }
