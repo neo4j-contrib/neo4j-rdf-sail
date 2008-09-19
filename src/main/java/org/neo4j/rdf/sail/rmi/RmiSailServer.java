@@ -12,11 +12,11 @@ import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 
+import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.openrdf.model.Statement;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailChangedEvent;
 import org.openrdf.sail.SailChangedListener;
-import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
@@ -24,7 +24,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 {
 	interface RmiSailConnectionFactory
 	{
-		RmiSailConnection connect( SailConnection connection )
+		RmiSailConnection connect( NeoRdfSailConnection connection )
 		    throws RemoteException;
 
 		<E, X extends Exception> IterationBufferer<E, X> buffer(
@@ -40,7 +40,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 		this.sail = sail;
 		this.factory = new RmiSailConnectionFactory()
 		{
-			public RmiSailConnection connect( SailConnection connection )
+			public RmiSailConnection connect( NeoRdfSailConnection connection )
 			    throws RemoteException
 			{
 				return new RmiSailConnectionImpl( connection, this );
@@ -60,7 +60,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 		this.sail = sail;
 		this.factory = new RmiSailConnectionFactory()
 		{
-			public RmiSailConnection connect( SailConnection connection )
+			public RmiSailConnection connect( NeoRdfSailConnection connection )
 			    throws RemoteException
 			{
 				return new RmiSailConnectionImpl( connection, this, port );
@@ -82,7 +82,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 		this.sail = sail;
 		this.factory = new RmiSailConnectionFactory()
 		{
-			public RmiSailConnection connect( SailConnection connection )
+			public RmiSailConnection connect( NeoRdfSailConnection connection )
 			    throws RemoteException
 			{
 				return new RmiSailConnectionImpl( connection, this, port, csf,
@@ -122,7 +122,8 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 	    final RmiSailConnectionListenerCallback callback )
 	    throws RemoteException, SailException
 	{
-		final SailConnection connection = sail.getConnection();
+		final NeoRdfSailConnection connection = ( NeoRdfSailConnection )
+			sail.getConnection();
 		connection.addConnectionListener( new SailConnectionListener()
 		{
 			public void statementAdded( Statement statement )

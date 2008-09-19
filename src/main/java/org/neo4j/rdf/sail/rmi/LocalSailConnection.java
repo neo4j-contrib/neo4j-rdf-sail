@@ -6,6 +6,8 @@ import info.aduna.iteration.CloseableIteration;
 
 import java.rmi.RemoteException;
 
+import org.neo4j.rdf.sail.NeoRdfSailConnection;
+import org.neo4j.rdf.sail.FulltextQueryResult;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -18,11 +20,10 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
-import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
-class LocalSailConnection implements SailConnection
+class LocalSailConnection implements NeoRdfSailConnection
 {
 	private final RmiSailConnection connection;
 	private final RmiSailConnectionListenerCallbackImpl callback;
@@ -250,4 +251,17 @@ class LocalSailConnection implements SailConnection
 			throw new SailException( RMI_CONNECTION_FAILED, ex );
 		}
 	}
+
+	public CloseableIteration<? extends FulltextQueryResult, SailException>
+		evaluate( String query ) throws SailException
+    {
+		try
+		{
+			return IterationUnbufferer.unbuffer( connection.evaluate( query ) );
+		}
+		catch ( RemoteException ex )
+		{
+			throw new SailException( RMI_CONNECTION_FAILED, ex );
+		}
+    }
 }

@@ -18,10 +18,13 @@ import org.neo4j.api.core.NeoService;
 import org.neo4j.api.core.Node;
 import org.neo4j.api.core.RelationshipType;
 import org.neo4j.impl.transaction.DeadlockDetectedException;
+import org.neo4j.rdf.fulltext.FulltextIndex;
+import org.neo4j.rdf.fulltext.QueryResult;
 import org.neo4j.rdf.model.CompleteStatement;
 import org.neo4j.rdf.sail.utils.ContextHandling;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
+import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.util.CombiningIterable;
 import org.neo4j.util.NeoUtil;
 import org.openrdf.model.Namespace;
@@ -38,7 +41,6 @@ import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailChangedListener;
-import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 import org.openrdf.sail.helpers.DefaultSailChangedEvent;
@@ -46,12 +48,11 @@ import org.openrdf.sail.helpers.DefaultSailChangedEvent;
 /**
  * Author: josh Date: Apr 25, 2008 Time: 5:36:36 PM
  */
-public class NeoSailConnection implements SailConnection
+public class NeoSailConnection implements NeoRdfSailConnection
 {
     private static final int DEFAULT_BATCHSIZE = 5000;
     // number of times to retry work in a transaction if deadlock detected
     private static final int NUMBER_OF_RETRIES = 5;
-    
     
     private final NeoService neo;
     private final TransactionManager tm;
@@ -225,6 +226,27 @@ public class NeoSailConnection implements SailConnection
         {
             throw new SailException( e );
         }
+    }
+    
+    public CloseableIteration<FulltextQueryResult, SailException> evaluate(
+    	String query )
+    {
+    	Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
+    	return new QueryResultIteration( queryResult.iterator() );
+    }
+    
+    public void reindexFulltextIndex()
+    {
+    	FulltextIndex fulltextIndex =
+    		( ( RdfStoreImpl ) store ).getFulltextIndex();
+    	if ( fulltextIndex == null )
+    	{
+    		throw new RuntimeException( "Fulltext index not used, please " +
+    			"supply it in the RdfStore constructor" );
+    	}
+    	
+    	fulltextIndex.clear();
+    	( ( RdfStoreImpl ) store ).reindexFulltextIndex();
     }
 
     // TODO
@@ -459,7 +481,9 @@ public class NeoSailConnection implements SailConnection
         {
             try
             {
+            	int txId = getTxId();
                 transaction.rollback();
+            	commitFulltextIndex( txId, false );
                 tm.begin();
                 transaction = tm.getTransaction();
             }
@@ -496,6 +520,22 @@ public class NeoSailConnection implements SailConnection
         throw new RuntimeException( "Failed to handle DDE", dde );
     }
     
+    private void commitFulltextIndex( int txId, boolean commit )
+    {
+    	// TODO Just a temporary hack now
+    	FulltextIndex fulltextIndex =
+    		( ( RdfStoreImpl ) store ).getFulltextIndex();
+    	if ( fulltextIndex != null )
+    	{
+    		fulltextIndex.end( txId, commit );
+    	}
+    }
+    
+    private int getTxId() throws Exception
+    {
+    	return tm.getTransaction().hashCode();
+    }
+    
     public synchronized void commit() throws SailException
     {
 //        System.out.println( "NeoSailConnection: commit invoked, at " +
@@ -504,7 +544,9 @@ public class NeoSailConnection implements SailConnection
     	suspendOtherAndResumeThis();
     	try
     	{
+    		int txId = getTxId();
     		tm.commit();
+    		commitFulltextIndex( txId, true );
     		tm.begin();
     		transaction = tm.getTransaction();
     		clearBatchCommit();
@@ -526,7 +568,9 @@ public class NeoSailConnection implements SailConnection
         suspendOtherAndResumeThis();
     	try
     	{
+    		int txId = getTxId();
     		transaction.rollback();
+    		commitFulltextIndex( txId, false );
     		tm.begin();
     		transaction = tm.getTransaction();
     		clearBatchCommit();
@@ -547,7 +591,9 @@ public class NeoSailConnection implements SailConnection
         {
             try
             {
+            	int txId = getTxId();
             	tm.commit();
+            	commitFulltextIndex( txId, true );
             	tm.begin();
             	transaction = tm.getTransaction();
             	clearBatchCommit();

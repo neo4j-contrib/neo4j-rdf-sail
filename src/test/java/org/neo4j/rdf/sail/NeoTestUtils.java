@@ -7,10 +7,14 @@ import org.neo4j.api.core.NeoService;
 import org.neo4j.api.core.Node;
 import org.neo4j.api.core.Relationship;
 import org.neo4j.api.core.Transaction;
+import org.neo4j.rdf.fulltext.FulltextIndex;
+import org.neo4j.rdf.fulltext.SimpleFulltextIndex;
 import org.neo4j.util.EntireGraphDeletor;
 
 public class NeoTestUtils
 {
+	private static final File BASE_DIR = new File( "var/test" );
+	
 	private NeoTestUtils()
 	{
 	}
@@ -36,10 +40,15 @@ public class NeoTestUtils
 
 	public static NeoService createNeo()
 	{
-		String dir = "var/test/neo";
+		String dir = new File( BASE_DIR, "neo" ).getAbsolutePath();
 		removeDir( new File( dir ) );
 		final NeoService neo = new EmbeddedNeo( dir );
 		return neo;
+	}
+	
+	public static FulltextIndex createFulltextIndex( NeoService neo )
+	{
+		return new SimpleFulltextIndex( neo, new File( BASE_DIR, "fulltext" ) );
 	}
 
 	private static void removeDir( File dir )

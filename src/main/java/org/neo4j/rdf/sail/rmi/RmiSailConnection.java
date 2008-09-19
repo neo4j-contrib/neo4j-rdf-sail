@@ -3,6 +3,7 @@ package org.neo4j.rdf.sail.rmi;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import org.neo4j.rdf.sail.FulltextQueryResult;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -46,7 +47,10 @@ interface RmiSailConnection extends Remote
 	RmiIterationBuffer<? extends BindingSet, QueryEvaluationException> evaluate(
 	    TupleExpr tupleExpr, Dataset dataset, BindingSet bindings,
 	    boolean includeInferred ) throws SailException, RemoteException;
-
+	
+	RmiIterationBuffer<? extends FulltextQueryResult, SailException>
+		evaluate( String query ) throws SailException, RemoteException;
+	
 	RmiIterationBuffer<? extends Resource, SailException> getContextIDs()
 	    throws SailException, RemoteException;
 

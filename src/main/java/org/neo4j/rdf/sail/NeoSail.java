@@ -59,9 +59,9 @@ public class NeoSail implements Sail {
     }
 
     public void shutDown() throws SailException {
-        // Not used.
 //    	System.out.println( "Number of history connections: " +
 //    		connectionCounter.get() );
+    	store.shutDown();
     }
 
     public boolean isWritable() throws SailException {

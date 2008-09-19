@@ -11,6 +11,7 @@ import org.neo4j.rdf.sail.NeoSail;
 import org.neo4j.rdf.sail.NeoTestUtils;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
+import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.util.index.IndexService;
 import org.openrdf.sail.Sail;
 
@@ -22,6 +23,9 @@ public class RmiSailTest extends BaseSailTest
 
     private NeoService neo = null;
     private IndexService idx = null;
+    
+    private RdfStore store = null;
+    private NeoSail neoSail = null;
     
     static
     {
@@ -41,8 +45,9 @@ public class RmiSailTest extends BaseSailTest
         {
             neo = NeoTestUtils.createNeo();
             idx = new CachingLuceneIndexService( neo );
-            RdfStore store = createStore( neo, idx );
-            RmiSailServer.register( new NeoSail( neo, store ), new java.net.URI(
+            store = createStore( neo, idx );
+            neoSail = new NeoSail( neo, store );
+            RmiSailServer.register( neoSail, new java.net.URI(
                 RESOURCE_URI ) );
         }
         catch ( Exception e )
@@ -103,6 +108,14 @@ public class RmiSailTest extends BaseSailTest
 	{
         tearDownRmi();
 	}
+	
+	@Override
+    protected void tearDownSail() throws Exception
+    {
+	    super.tearDownSail();
+		( ( RdfStoreImpl ) store ).getFulltextIndex().clear();
+	    this.neoSail.shutDown();
+    }
 
 	@Override
 	protected Sail createSail() throws Exception

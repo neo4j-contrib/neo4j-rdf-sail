@@ -6,12 +6,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
+
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +69,8 @@ public abstract class BaseSailTest
 	protected static final RdfStore createStore( NeoService neo, 
         IndexService indexService )
 	{
-		return new VerboseQuadStore( neo, indexService, null );
+		return new VerboseQuadStore( neo, indexService, null,
+			NeoTestUtils.createFulltextIndex( neo ) );
 	}
     
 	protected abstract void before() throws Exception;
@@ -88,7 +92,7 @@ public abstract class BaseSailTest
 		return this.sail;
 	}
 
-	private void tearDownSail() throws Exception
+	protected void tearDownSail() throws Exception
 	{
 		sail().shutDown();
 	}
@@ -1312,6 +1316,69 @@ public abstract class BaseSailTest
 			sc.close();
 		}
 	}
+	
+	@Test
+	public void testFulltextSearch() throws Exception
+	{
+		SailConnection sc;
+		int count;
+		boolean includeInferred = false;
+		URI uriA = sail.getValueFactory().createURI(
+		    "http://example.org/test/fulltextSearch#a" );
+		URI uriB = sail.getValueFactory().createURI(
+			"http://example.org/test/fulltextSearch#b" );
+		URI uriC = sail.getValueFactory().createURI(
+			"http://example.org/test/fulltextSearch#c" );
+		sc = sail.getConnection();
+		try
+		{
+			count = countStatements( sc.getStatements( uriA, null, null,
+			    includeInferred ) );
+			assertEquals( 0, count );
+			sc.close();
+			sc = sail.getConnection();
+			String text1 = "Lorem ipsum dolor sit amet, " +
+				"consectetuer adipiscing elit. Nunc neque.";
+			String text2 = "Lorem ipsum dolor sit amet. " +
+				"Aliquam adipiscing sapien.";
+			String text3 = "Integer et neque ut erat feugiat varius. " +
+				"Aliquam adipiscing sapien.";
+			sc.addStatement( uriA, uriB, sail.getValueFactory().createLiteral(
+				text1 ) );
+			sc.addStatement( uriA, uriB, sail.getValueFactory().createLiteral(
+				text2 ) );
+			sc.addStatement( uriA, uriC, sail.getValueFactory().createLiteral(
+				text3 ) );
+			sc.commit();
+			sc.close();
+			sc = sail.getConnection();
+			
+			// TODO Work-around for the fulltext index, which is asynchronous
+			long time = System.currentTimeMillis();
+			while ( System.currentTimeMillis() - time < 3000 &&
+				countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
+					"integer" ) ) == 0 )
+			{
+				Thread.sleep( 100 );
+			}
+			
+			count = countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
+				"Lorem ipsum" ) );
+			assertEquals( 2, count );
+			count = countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
+				"dolo*" ) );
+			assertEquals( 2, count );
+			count = countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
+				"aliq* integer" ) );
+			assertEquals( 1, count );
+			
+			sc.removeStatements( uriA, null, null );
+		}
+		finally
+		{
+			sc.close();
+		}
+	}
 
 	@Test
 	public void testVisibilityOfChanges() throws Exception
@@ -1378,7 +1445,7 @@ public abstract class BaseSailTest
 	}
 
 	private int countStatements(
-	    CloseableIteration<? extends Statement, SailException> statements )
+	    CloseableIteration<?, SailException> statements )
 	    throws SailException
 	{
 		int count = 0;
