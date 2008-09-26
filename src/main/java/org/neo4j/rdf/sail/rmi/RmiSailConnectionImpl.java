@@ -5,8 +5,8 @@ import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 
-import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.neo4j.rdf.sail.FulltextQueryResult;
+import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.neo4j.rdf.sail.rmi.RmiSailServer.RmiSailConnectionFactory;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -17,15 +17,16 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 class RmiSailConnectionImpl extends UnicastRemoteObject implements
     RmiSailConnection
 {
-	private final NeoRdfSailConnection connection;
+	private final SailConnection connection;
 	private final RmiSailConnectionFactory factory;
 
-	RmiSailConnectionImpl( NeoRdfSailConnection connection,
+	RmiSailConnectionImpl( SailConnection connection,
 	    RmiSailConnectionFactory factory ) throws RemoteException
 	{
 		super();
@@ -33,7 +34,7 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
 		this.factory = factory;
 	}
 
-	RmiSailConnectionImpl( NeoRdfSailConnection connection,
+	RmiSailConnectionImpl( SailConnection connection,
 	    RmiSailConnectionFactory factory, int port ) throws RemoteException
 	{
 		super( port );
@@ -41,7 +42,7 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
 		this.factory = factory;
 	}
 
-	RmiSailConnectionImpl( NeoRdfSailConnection connection,
+	RmiSailConnectionImpl( SailConnection connection,
 	    RmiSailConnectionFactory factory, int port, RMIClientSocketFactory csf,
 	    RMIServerSocketFactory ssf ) throws RemoteException
 	{
@@ -144,6 +145,14 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
 	public RmiIterationBuffer<? extends FulltextQueryResult, SailException> evaluate(
         String query ) throws SailException, RemoteException
     {
-	    return factory.buffer( connection.evaluate( query ) );
+		if ( !( connection instanceof NeoRdfSailConnection ) )
+		{
+			throw new RuntimeException( "Only available for connections " +
+				"implementing " + NeoRdfSailConnection.class );
+		}
+		
+		NeoRdfSailConnection neoRdfSailCollection = ( NeoRdfSailConnection )
+			connection;
+	    return factory.buffer( neoRdfSailCollection.evaluate( query ) );
     }
 }
