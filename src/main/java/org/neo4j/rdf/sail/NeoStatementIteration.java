@@ -66,7 +66,7 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
         //System.out.println("retrieved a statement: " + statement);
                 return (null == statement)
                         // TODO: would be better here if iterator were an Iterator<CompleteStatement>
-                        ? null : NeoSesameMapper.createStatement((CompleteStatement) statement);
+                        ? null : NeoSesameMapper.createStatement((CompleteStatement) statement, true);
     }
 
     public void remove() throws SailException {

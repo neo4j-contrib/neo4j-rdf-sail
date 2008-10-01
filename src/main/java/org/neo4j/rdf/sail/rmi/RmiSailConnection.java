@@ -2,6 +2,7 @@ package org.neo4j.rdf.sail.rmi;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
 import org.openrdf.model.Namespace;
@@ -20,6 +21,10 @@ interface RmiSailConnection extends Remote
 	void addStatement( Resource subj, URI pred, Value obj, Resource[] contexts )
 	    throws SailException, RemoteException;
 
+    Statement addStatement( Map<String, Object> metadata, Resource subj,
+        URI pred, Value obj, Resource[] contexts )
+        throws SailException, RemoteException;
+    
 	void clear( Resource[] contexts ) throws SailException, RemoteException;
 
 	void clearNamespaces() throws SailException, RemoteException;
@@ -47,6 +52,9 @@ interface RmiSailConnection extends Remote
 	RmiIterationBuffer<? extends BindingSet, QueryEvaluationException> evaluate(
 	    TupleExpr tupleExpr, Dataset dataset, BindingSet bindings,
 	    boolean includeInferred ) throws SailException, RemoteException;
+	
+	void setStatementMetadata( Statement statement,
+	    Map<String, Object> metadata ) throws SailException, RemoteException;
 	
 	RmiIterationBuffer<? extends FulltextQueryResult, SailException>
 		evaluate( String query ) throws SailException, RemoteException;

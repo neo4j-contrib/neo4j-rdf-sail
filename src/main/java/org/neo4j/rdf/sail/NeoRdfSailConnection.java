@@ -1,7 +1,13 @@
 package org.neo4j.rdf.sail;
 
+import java.util.Map;
+
 import info.aduna.iteration.CloseableIteration;
 
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
@@ -19,4 +25,11 @@ public interface NeoRdfSailConnection extends SailConnection
 {
     CloseableIteration<? extends FulltextQueryResult, SailException>
     	evaluate( String query ) throws SailException;
+    
+    void setStatementMetadata( Statement statement,
+        Map<String, Object> metadata ) throws SailException;
+    
+    Statement addStatement( Map<String, Object> metadata, Resource subject,
+        URI predicate, Value object, Resource... contexts )
+        throws SailException;
 }

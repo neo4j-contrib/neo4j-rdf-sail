@@ -5,8 +5,10 @@ import info.aduna.iteration.CloseableIteration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,6 +23,8 @@ import org.neo4j.impl.transaction.DeadlockDetectedException;
 import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.fulltext.QueryResult;
 import org.neo4j.rdf.model.CompleteStatement;
+import org.neo4j.rdf.model.StatementMetadata;
+import org.neo4j.rdf.model.WildcardStatement;
 import org.neo4j.rdf.sail.utils.ContextHandling;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
@@ -67,7 +71,6 @@ public class NeoSailConnection implements NeoRdfSailConnection
     private final AtomicInteger writeOperationCount = new AtomicInteger();
     private final Sail sail;
     private final AtomicInteger totalAddCount = new AtomicInteger();
-    private boolean iterateResults;
 
     private final List<Command> commands = new ArrayList<Command>(); 
     
@@ -200,15 +203,6 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
     }
     
-    public void setIterateResults( boolean iterateResults )
-    {
-        // When running playback tests I don't think the PlaybackSail
-        // iterates through all the results and since the Iterator returned
-        // from this method is a true iterator which will find the results
-        // on the fly it isn't a fair result to just return the iterator.
-    	this.iterateResults = iterateResults;
-    }
-
     public CloseableIteration<? extends BindingSet, QueryEvaluationException> evaluate(
         final TupleExpr tupleExpr, final Dataset dataset,
         final BindingSet bindingSet, final boolean includeInferred )
@@ -255,33 +249,36 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         return null;
     }
-
-    public synchronized CloseableIteration<? extends Statement, SailException> getStatements(final Resource subject,
-                                                                                final URI predicate,
-                                                                                final Value object,
-                                                                                boolean includeInferred,
-                                                                                final Resource... contexts) throws SailException {
-        if (includeInferred) {
+    
+    protected synchronized Iterator<CompleteStatement> getNeoRdfStatements(
+        final Resource subject, final URI predicate, final Value object,
+        boolean includeInferred, final Resource... contexts )
+        throws SailException
+    {
+        if ( includeInferred )
+        {
             // TODO: change this to a warning
 //            System.err.println("Warning: inference is not yet supported");
             includeInferred = false;
         }
 
-//System.out.println("getStatements(" + subject + ", " + predicate + ", " + object + ", " + includeInferred + ", " + contexts );
-        suspendOtherAndResumeThis();
-        try {
-        	Iterable<CompleteStatement> result = null;
-            if (contexts.length == 0) {
-                org.neo4j.rdf.model.WildcardStatement statement
-                        = SesameNeoMapper.createWildcardStatement(subject, predicate, object);
-                Iterable<org.neo4j.rdf.model.CompleteStatement> iterator = store.getStatements(statement, includeInferred);
+        try
+        {
+            Iterable<CompleteStatement> result = null;
+            if ( contexts.length == 0 ) {
+                WildcardStatement statement = SesameNeoMapper.
+                    createWildcardStatement( subject, predicate, object );
+                Iterable<CompleteStatement> iterator =
+                    store.getStatements( statement, includeInferred );
                 result = iterator;
-            } else {
+            }
+            else
+            {
                 LinkedList<Iterable<CompleteStatement>> allQueries =
-                	new LinkedList<Iterable<CompleteStatement>>();
+                    new LinkedList<Iterable<CompleteStatement>>();
                 for ( Resource context : contexts )
                 {
-                    org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
+                    WildcardStatement statement = SesameNeoMapper
                         .createWildcardStatement( subject, predicate, object,
                             context );
                     Iterable<CompleteStatement> iterator = store
@@ -290,25 +287,29 @@ public class NeoSailConnection implements NeoRdfSailConnection
                 }
                 result = new CombiningIterable<CompleteStatement>( allQueries );
             }
-            
-            if ( this.iterateResults )
-            {
-	            LinkedList<CompleteStatement> statements = new LinkedList<CompleteStatement>();
-	            for ( CompleteStatement stmt : result )
-	            {
-	            	statements.add( stmt );
-	            }
-	            result = statements;
-            }
-            return new NeoStatementIteration( result.iterator(), this );
+            return result.iterator();
         }
         catch ( RuntimeException e )
         {
             throw new SailException( e );
         }
+    }
+
+    public synchronized CloseableIteration<? extends Statement, SailException> getStatements(final Resource subject,
+                                                                                final URI predicate,
+                                                                                final Value object,
+                                                                                boolean includeInferred,
+                                                                                final Resource... contexts) throws SailException {
+        
+        suspendOtherAndResumeThis();
+        try
+        {
+            return new NeoStatementIteration( getNeoRdfStatements( subject,
+                predicate, object, includeInferred, contexts ), this );
+        }
         finally
         {
-        	suspendThisAndResumeOther();
+            suspendThisAndResumeOther();
         }
     }
 
@@ -324,18 +325,17 @@ public class NeoSailConnection implements NeoRdfSailConnection
             suspendThisAndResumeOther();
         }
     }
-
-    public synchronized void addStatement( final Resource subject, 
-    	final URI predicate, final Value object, final Resource... contexts ) 
-    		throws SailException
+    
+    private void innerAddStatement( final Resource subject, 
+        final URI predicate, final Value object, final Resource... contexts )
+        throws SailException
     {
-    	totalAddCount.incrementAndGet();
-    	suspendOtherAndResumeThis();
         commands.add( new Command( CommandType.ADD_STATEMENT, subject, 
             predicate, object, contexts ) );
         try
         {
             internalAddStatement( subject, predicate, object, contexts );
+            totalAddCount.incrementAndGet();
             checkBatchCommit();
         }
         catch ( DeadlockDetectedException e )
@@ -347,11 +347,27 @@ public class NeoSailConnection implements NeoRdfSailConnection
             e.printStackTrace();
             throw new SailException( e );
         }
-        finally
-        {
-        	suspendThisAndResumeOther();
-        }
+    }
 
+    public synchronized void addStatement( final Resource subject, 
+    	final URI predicate, final Value object, final Resource... contexts ) 
+    		throws SailException
+    {
+    	suspendOtherAndResumeThis();
+    	try
+    	{
+    	    innerAddStatement( subject, predicate, object, contexts );
+    	}
+    	finally
+    	{
+    	    suspendThisAndResumeOther();
+    	}
+    	sendEventsToListeners( subject, predicate, object, contexts );
+    }
+    
+    private void sendEventsToListeners( final Resource subject,
+        final URI predicate, final Value object, final Resource... contexts )
+    {
         if ( sailConnectionListeners.size() > 0 )
         {
             for ( SailConnectionListener l : sailConnectionListeners)
@@ -381,7 +397,88 @@ public class NeoSailConnection implements NeoRdfSailConnection
             }
         }
     }
-
+    
+    public synchronized Statement addStatement(
+        final Map<String, Object> metadata, final Resource subject,
+        final URI predicate, final Value object, final Resource... contexts )
+        throws SailException
+    {
+        Statement result = null;
+        suspendOtherAndResumeThis();
+        try
+        {
+            innerAddStatement( subject, predicate, object, contexts );
+            CompleteStatement statement = getNeoRdfStatements( subject,
+                predicate, object, false, contexts ).next();
+            setStatementMetadata( statement, metadata );
+            result = NeoSesameMapper.createStatement( statement, true );
+        }
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
+        sendEventsToListeners( subject, predicate, object, contexts );
+        return result;
+    }
+    
+    public synchronized void setStatementMetadata( Statement statement,
+        Map<String, Object> metadata ) throws SailException
+    {
+        suspendOtherAndResumeThis();
+        try
+        {
+            CompleteStatement neoStatement = getNeoRdfStatements(
+                statement.getSubject(), statement.getPredicate(),
+                statement.getObject(), false, statement.getContext() ).next();
+            setStatementMetadata( neoStatement, metadata );
+        }
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
+    }
+    
+    private void setStatementMetadata( CompleteStatement statement,
+        Map<String, Object> metadata ) throws SailException
+    {
+        try
+        {
+            Collection<String> allKeys = new HashSet<String>();
+            allKeys.addAll( metadata.keySet() );
+            StatementMetadata existingMetadata = statement.getMetadata();
+            for ( String key : existingMetadata.getKeys() )
+            {
+                allKeys.add( key );
+            }
+            for ( String key : allKeys )
+            {
+                Object value = metadata.get( key );
+                if ( value != null && existingMetadata.has( key ) )
+                {
+                    // Update
+                    if ( !existingMetadata.get( key ).equals( value ) )
+                    {
+                        existingMetadata.set( key, value );
+                    }
+                }
+                else if ( value != null )
+                {
+                    // Add
+                    existingMetadata.set( key, value );
+                }
+                else
+                {
+                    // Remove
+                    existingMetadata.remove( key );
+                }
+            }
+        }
+        catch ( RuntimeException e )
+        {
+            throw new SailException( e );
+        }
+    }
+    
     private void internalAddStatement( final Resource subject, 
         final URI predicate, final Value object, final Resource... contexts ) 
     {

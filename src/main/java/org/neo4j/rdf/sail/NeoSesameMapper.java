@@ -53,18 +53,20 @@ public class NeoSesameMapper {
 
     public static Resource createContext(final org.neo4j.rdf.model.Context from) {
         // TODO: blank node contexts
-        return VALUE_FACTORY.createURI(from.getUriAsString());
+        return from == null || from.equals( org.neo4j.rdf.model.Context.NULL ) ? null :
+            VALUE_FACTORY.createURI(from.getUriAsString());
     }
 
-    public static Statement createStatement(final org.neo4j.rdf.model.CompleteStatement from) {
+    public static Statement createStatement(final org.neo4j.rdf.model.CompleteStatement from,
+        final boolean readMetadata) {
         Context context = from.getContext();
-        if (context.isWildcard()) {
+        if (context != null && context.isWildcard()) {
             throw new IllegalArgumentException("Cannot have wildcard context");
         }
 //System.out.println("context = " + context);
 //System.out.println("    actually null?: " + (null == context.getUriAsString()));
 
-        return (null == context)
+        Statement result = (null == context)
                 ? VALUE_FACTORY.createStatement(createResource(from.getSubject()),
                         createUri(from.getPredicate()),
                         createValue(from.getObject()))
@@ -73,6 +75,11 @@ public class NeoSesameMapper {
                         createUri(from.getPredicate()),
                         createValue(from.getObject()),
                         createContext(context));
+        if ( readMetadata )
+        {
+            result = new NeoRdfStatementImpl( result, from );
+        }
+        return result;
     }
 
     // TODO (maybe): createNamespace

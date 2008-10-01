@@ -7,10 +7,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -1373,6 +1376,7 @@ public abstract class BaseSailTest
 			assertEquals( 1, count );
 			
 			sc.removeStatements( uriA, null, null );
+			sc.commit();
 		}
 		finally
 		{
@@ -1416,6 +1420,171 @@ public abstract class BaseSailTest
 			sc1.close();
 		}
 	}
+	
+	@Test
+	public void testMetadata() throws Exception
+	{
+	    SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#a" );
+        URI uriB = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#b" );
+        URI uriC = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#c" );
+        URI uriD = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#d" );
+        URI uriE = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#e" );
+        int count;
+        boolean includeInferred = false;
+	    try
+	    {
+            count = countStatements( sc.getStatements( uriA, null, null,
+                includeInferred ) );
+            assertEquals( 0, count );
+            sc.addStatement( uriA, uriB, uriC );
+            count = countStatements( sc.getStatements( uriA, uriB, uriC,
+                includeInferred ) );
+            assertEquals( 1, count );
+            CloseableIteration<? extends Statement, SailException> itr =
+                sc.getStatements( uriA, uriB, uriC, includeInferred );
+            Statement statement = itr.next();
+            itr.close();
+            
+            NeoRdfStatement neoRdfStatement = ( NeoRdfStatement ) statement;
+            Object value = "One of those test values";
+            Object[] arrayValue = new Integer[] { 1, 2, 3 };
+            Map<String, Object> metadata = neoRdfStatement.getMetadata();
+            assertEquals( 0, metadata.size() );
+            metadata.put( uriD.stringValue(), value );
+            metadata.put( uriE.stringValue(), arrayValue );
+            
+            ( ( NeoRdfSailConnection ) sc ).setStatementMetadata(
+                neoRdfStatement, metadata );
+            sc.commit();
+            sc.close();
+            sc = sail.getConnection();
+            
+            itr = sc.getStatements( uriA, uriB, uriC, includeInferred );
+            statement = itr.next();
+            itr.close();
+            neoRdfStatement = ( NeoRdfStatement ) statement;
+            metadata = neoRdfStatement.getMetadata();
+            assertEquals( 2, metadata.size() );
+            assertEquals( value, metadata.get( uriD.stringValue() ) );
+            assertTrue( Arrays.equals( arrayValue,
+                ( Object[] ) metadata.get( uriE.stringValue() ) ) );
+            metadata.remove( uriE.stringValue() );
+            ( ( NeoRdfSailConnection ) sc ).setStatementMetadata(
+                statement, metadata );
+            sc.commit();
+            sc.close();
+            sc = sail.getConnection();
+            
+            itr = sc.getStatements( uriA, uriB, uriC, includeInferred );
+            statement = itr.next();
+            itr.close();
+            neoRdfStatement = ( NeoRdfStatement ) statement;
+            metadata = neoRdfStatement.getMetadata();
+            
+            assertEquals( 1, metadata.size() );
+            assertEquals( value, metadata.get( uriD.stringValue() ) );
+            
+            sc.removeStatements( uriA, null, null );
+            sc.commit();
+        }
+        finally
+        {
+            sc.close();
+        }
+    }
+	
+	@Test
+	public void testAddWithMetadata() throws Exception
+	{
+	    NeoRdfSailConnection sc = ( NeoRdfSailConnection ) sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#a" );
+        URI uriB = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#b" );
+        URI uriC = sail.getValueFactory().createURI(
+            "http://example.org/test/metadata#c" );
+        URI contextA = sail.getValueFactory().createURI(
+            "http://example.org/test/metadataContext#a" );
+        URI contextB = sail.getValueFactory().createURI(
+            "http://example.org/test/metadataContext#b" );
+        int count;
+        boolean includeInferred = false;
+	    try
+	    {
+            count = countStatements( sc.getStatements( uriA, null, null,
+                includeInferred ) );
+            assertEquals( 0, count );
+            String metadataKey = "http://example.org/test/someExampleUri";
+            Object valueA = "Just a literal indeed";
+            Object valueB = 123456d;
+            Map<String, Object> metadata = new HashMap<String, Object>();
+            metadata.put( metadataKey, valueA );
+            Statement statement = sc.addStatement( metadata, uriA, uriB, uriC,
+                contextA );
+            NeoRdfStatement neoRdfStatement = ( NeoRdfStatement ) statement;
+            assertEquals( valueA,
+                neoRdfStatement.getMetadata().get( metadataKey ) );
+            
+            metadata.clear();
+            metadata.put( metadataKey, valueB );
+            statement = sc.addStatement( metadata, uriA, uriB, uriC, contextB );
+            neoRdfStatement = ( NeoRdfStatement ) statement;
+            assertEquals( valueB,
+                neoRdfStatement.getMetadata().get( metadataKey ) );
+            neoRdfStatement = ( NeoRdfStatement ) sc.getStatements( uriA, uriB,
+                uriC, includeInferred, contextA ).next();
+            assertEquals( valueA,
+                neoRdfStatement.getMetadata().get( metadataKey ) );
+            neoRdfStatement = ( NeoRdfStatement ) sc.getStatements( uriA, uriB,
+                uriC, includeInferred, contextB ).next();
+            assertEquals( valueB,
+                neoRdfStatement.getMetadata().get( metadataKey ) );
+            
+            sc.removeStatements( uriA, null, null );
+            sc.commit();
+	    }
+	    finally
+	    {
+	        sc.close();
+	    }
+	}
+	
+    @Test
+    public void testNullContext() throws Exception
+    {
+        SailConnection sc = sail.getConnection();
+        URI uriA = sail.getValueFactory().createURI(
+            "http://example.org/test/nullContext#a" );
+        URI uriB = sail.getValueFactory().createURI(
+            "http://example.org/test/nullContext#b" );
+        URI uriC = sail.getValueFactory().createURI(
+            "http://example.org/test/nullContext#c" );
+        int count = 0;
+        boolean includeInferred = false;
+        try
+        {
+            count = countStatements( sc.getStatements( uriA, null, null,
+                includeInferred ) );
+            assertEquals( 0, count );
+            sc.addStatement( uriA, uriB, uriC );
+            Statement statement = sc.getStatements( uriA, uriB, uriC,
+                includeInferred, new Resource[] { null } ).next();
+            Resource context = statement.getContext();
+            assertNull( context );
+            sc.removeStatements( uriA, null, null );
+            sc.commit();
+        }
+        finally
+        {
+            sc.close();
+        }
+    }
 
 	// TODO: concurrency testing ///////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////

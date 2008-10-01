@@ -5,9 +5,10 @@ import static org.neo4j.rdf.sail.rmi.RmiSailClient.valueFactory;
 import info.aduna.iteration.CloseableIteration;
 
 import java.rmi.RemoteException;
+import java.util.Map;
 
-import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.neo4j.rdf.sail.FulltextQueryResult;
+import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -58,6 +59,20 @@ class LocalSailConnection implements NeoRdfSailConnection
 		}
 	}
 
+    public Statement addStatement( Map<String, Object> metadata, Resource subj,
+        URI pred, Value obj, Resource... contexts ) throws SailException
+    {
+        try
+        {
+            return connection.addStatement( metadata, subj, pred, obj,
+                contexts );
+        }
+        catch ( RemoteException ex )
+        {
+            throw new SailException( RMI_CONNECTION_FAILED, ex );
+        }
+    }
+    
 	public void clear( Resource... contexts ) throws SailException
 	{
 		try
@@ -263,5 +278,18 @@ class LocalSailConnection implements NeoRdfSailConnection
 		{
 			throw new SailException( RMI_CONNECTION_FAILED, ex );
 		}
+    }
+	
+	public void setStatementMetadata( Statement statement,
+	    Map<String, Object> metadata ) throws SailException
+    {
+	    try
+	    {
+	        connection.setStatementMetadata( statement, metadata );
+	    }
+	    catch ( RemoteException e )
+	    {
+	        throw new SailException( RMI_CONNECTION_FAILED, e );
+	    }
     }
 }

@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
 import org.neo4j.rdf.sail.NeoRdfSailConnection;
@@ -58,6 +59,13 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
 		connection.addStatement( subj, pred, obj, contexts );
 	}
 
+    public Statement addStatement( Map<String, Object> metadata, Resource subj,
+        URI pred, Value obj, Resource[] contexts ) throws SailException
+    {
+        return getNeoRdfConnection().addStatement( metadata, subj, pred, obj,
+            contexts );
+    }
+    
 	public void clear( Resource[] contexts ) throws SailException
 	{
 		connection.clear( contexts );
@@ -141,18 +149,28 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
 		return factory.buffer( connection.getStatements( subj, pred, obj,
 		    includeInferred, contexts ) );
 	}
+	
+	private NeoRdfSailConnection getNeoRdfConnection()
+	{
+        if ( !( connection instanceof NeoRdfSailConnection ) )
+        {
+            throw new RuntimeException( "Only available for connections " +
+                "implementing " + NeoRdfSailConnection.class );
+        }
+        return ( NeoRdfSailConnection ) connection;
+	}
 
 	public RmiIterationBuffer<? extends FulltextQueryResult, SailException> evaluate(
         String query ) throws SailException, RemoteException
     {
-		if ( !( connection instanceof NeoRdfSailConnection ) )
-		{
-			throw new RuntimeException( "Only available for connections " +
-				"implementing " + NeoRdfSailConnection.class );
-		}
-		
-		NeoRdfSailConnection neoRdfSailCollection = ( NeoRdfSailConnection )
-			connection;
+		NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
 	    return factory.buffer( neoRdfSailCollection.evaluate( query ) );
+    }
+	
+	public void setStatementMetadata( Statement statement,
+	    Map<String, Object> metadata ) throws SailException, RemoteException
+    {
+        NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
+	    neoRdfSailCollection.setStatementMetadata( statement, metadata );
     }
 }
