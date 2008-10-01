@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.neo4j.rdf.model.CompleteStatement;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -13,17 +14,17 @@ import org.openrdf.model.Value;
 public class NeoRdfStatementImpl implements NeoRdfStatement, Serializable
 {
     private Statement statement;
-    private Map<String, Serializable> metadata;
+    private Map<String, Literal> metadata;
     
     public NeoRdfStatementImpl( Statement statement,
         CompleteStatement neoStatement )
     {
         this.statement = statement;
-        this.metadata = new HashMap<String, Serializable>();
+        this.metadata = new HashMap<String, Literal>();
         for ( String key : neoStatement.getMetadata().getKeys() )
         {
-            this.metadata.put( key, ( Serializable )
-                neoStatement.getMetadata().get( key ) );
+            this.metadata.put( key, NeoSesameMapper.createLiteral(
+                neoStatement.getMetadata().get( key ) ) );
         }
     }
     
@@ -47,8 +48,8 @@ public class NeoRdfStatementImpl implements NeoRdfStatement, Serializable
         return this.statement.getSubject();
     }
     
-    public Map<String, Object> getMetadata()
+    public Map<String, Literal> getMetadata()
     {
-        return new HashMap<String, Object>( this.metadata );
+        return new HashMap<String, Literal>( this.metadata );
     }
 }

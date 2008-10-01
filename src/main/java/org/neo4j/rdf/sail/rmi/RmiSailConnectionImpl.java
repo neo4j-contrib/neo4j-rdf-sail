@@ -9,6 +9,7 @@ import java.util.Map;
 import org.neo4j.rdf.sail.FulltextQueryResult;
 import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.neo4j.rdf.sail.rmi.RmiSailServer.RmiSailConnectionFactory;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -59,7 +60,7 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
 		connection.addStatement( subj, pred, obj, contexts );
 	}
 
-    public Statement addStatement( Map<String, Object> metadata, Resource subj,
+    public Statement addStatement( Map<String, Literal> metadata, Resource subj,
         URI pred, Value obj, Resource[] contexts ) throws SailException
     {
         return getNeoRdfConnection().addStatement( metadata, subj, pred, obj,
@@ -168,7 +169,7 @@ class RmiSailConnectionImpl extends UnicastRemoteObject implements
     }
 	
 	public void setStatementMetadata( Statement statement,
-	    Map<String, Object> metadata ) throws SailException, RemoteException
+	    Map<String, Literal> metadata ) throws SailException, RemoteException
     {
         NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
 	    neoRdfSailCollection.setStatementMetadata( statement, metadata );

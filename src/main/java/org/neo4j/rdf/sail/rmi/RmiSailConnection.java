@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -21,7 +22,7 @@ interface RmiSailConnection extends Remote
 	void addStatement( Resource subj, URI pred, Value obj, Resource[] contexts )
 	    throws SailException, RemoteException;
 
-    Statement addStatement( Map<String, Object> metadata, Resource subj,
+    Statement addStatement( Map<String, Literal> metadata, Resource subj,
         URI pred, Value obj, Resource[] contexts )
         throws SailException, RemoteException;
     
@@ -54,7 +55,7 @@ interface RmiSailConnection extends Remote
 	    boolean includeInferred ) throws SailException, RemoteException;
 	
 	void setStatementMetadata( Statement statement,
-	    Map<String, Object> metadata ) throws SailException, RemoteException;
+	    Map<String, Literal> metadata ) throws SailException, RemoteException;
 	
 	RmiIterationBuffer<? extends FulltextQueryResult, SailException>
 		evaluate( String query ) throws SailException, RemoteException;

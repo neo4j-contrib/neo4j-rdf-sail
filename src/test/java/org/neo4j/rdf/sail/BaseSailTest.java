@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +32,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.datatypes.XMLDatatypeUtil;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
@@ -1451,13 +1451,14 @@ public abstract class BaseSailTest
             Statement statement = itr.next();
             itr.close();
             
+            ValueFactory vf = new ValueFactoryImpl();
             NeoRdfStatement neoRdfStatement = ( NeoRdfStatement ) statement;
-            Object value = "One of those test values";
-            Object[] arrayValue = new Integer[] { 1, 2, 3 };
-            Map<String, Object> metadata = neoRdfStatement.getMetadata();
+            Literal value = vf.createLiteral( "One of those test values" );
+            Literal value2 = vf.createLiteral( 12345d );
+            Map<String, Literal> metadata = neoRdfStatement.getMetadata();
             assertEquals( 0, metadata.size() );
             metadata.put( uriD.stringValue(), value );
-            metadata.put( uriE.stringValue(), arrayValue );
+            metadata.put( uriE.stringValue(), value2 );
             
             ( ( NeoRdfSailConnection ) sc ).setStatementMetadata(
                 neoRdfStatement, metadata );
@@ -1472,8 +1473,7 @@ public abstract class BaseSailTest
             metadata = neoRdfStatement.getMetadata();
             assertEquals( 2, metadata.size() );
             assertEquals( value, metadata.get( uriD.stringValue() ) );
-            assertTrue( Arrays.equals( arrayValue,
-                ( Object[] ) metadata.get( uriE.stringValue() ) ) );
+            assertEquals( value2, metadata.get( uriE.stringValue() ) );
             metadata.remove( uriE.stringValue() );
             ( ( NeoRdfSailConnection ) sc ).setStatementMetadata(
                 statement, metadata );
@@ -1521,9 +1521,10 @@ public abstract class BaseSailTest
                 includeInferred ) );
             assertEquals( 0, count );
             String metadataKey = "http://example.org/test/someExampleUri";
-            Object valueA = "Just a literal indeed";
-            Object valueB = 123456d;
-            Map<String, Object> metadata = new HashMap<String, Object>();
+            ValueFactory vf = new ValueFactoryImpl();
+            Literal valueA = vf.createLiteral( "Just a literal indeed" );
+            Literal valueB = vf.createLiteral( false );
+            Map<String, Literal> metadata = new HashMap<String, Literal>();
             metadata.put( metadataKey, valueA );
             Statement statement = sc.addStatement( metadata, uriA, uriB, uriC,
                 contextA );

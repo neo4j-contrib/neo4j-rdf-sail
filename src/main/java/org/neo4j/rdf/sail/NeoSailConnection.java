@@ -31,6 +31,7 @@ import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.util.CombiningIterable;
 import org.neo4j.util.NeoUtil;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -399,7 +400,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     }
     
     public synchronized Statement addStatement(
-        final Map<String, Object> metadata, final Resource subject,
+        final Map<String, Literal> metadata, final Resource subject,
         final URI predicate, final Value object, final Resource... contexts )
         throws SailException
     {
@@ -422,7 +423,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     }
     
     public synchronized void setStatementMetadata( Statement statement,
-        Map<String, Object> metadata ) throws SailException
+        Map<String, Literal> metadata ) throws SailException
     {
         suspendOtherAndResumeThis();
         try
@@ -439,7 +440,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     }
     
     private void setStatementMetadata( CompleteStatement statement,
-        Map<String, Object> metadata ) throws SailException
+        Map<String, Literal> metadata ) throws SailException
     {
         try
         {
@@ -452,19 +453,21 @@ public class NeoSailConnection implements NeoRdfSailConnection
             }
             for ( String key : allKeys )
             {
-                Object value = metadata.get( key );
+                Literal value = metadata.get( key );
                 if ( value != null && existingMetadata.has( key ) )
                 {
                     // Update
                     if ( !existingMetadata.get( key ).equals( value ) )
                     {
-                        existingMetadata.set( key, value );
+                        existingMetadata.set( key,
+                            SesameNeoMapper.createLiteral( value ) );
                     }
                 }
                 else if ( value != null )
                 {
                     // Add
-                    existingMetadata.set( key, value );
+                    existingMetadata.set( key,
+                        SesameNeoMapper.createLiteral( value ) );
                 }
                 else
                 {

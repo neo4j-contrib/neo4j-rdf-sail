@@ -4,6 +4,7 @@ import java.util.Map;
 
 import info.aduna.iteration.CloseableIteration;
 
+import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -27,9 +28,9 @@ public interface NeoRdfSailConnection extends SailConnection
     	evaluate( String query ) throws SailException;
     
     void setStatementMetadata( Statement statement,
-        Map<String, Object> metadata ) throws SailException;
+        Map<String, Literal> metadata ) throws SailException;
     
-    Statement addStatement( Map<String, Object> metadata, Resource subject,
+    Statement addStatement( Map<String, Literal> metadata, Resource subject,
         URI predicate, Value object, Resource... contexts )
         throws SailException;
 }

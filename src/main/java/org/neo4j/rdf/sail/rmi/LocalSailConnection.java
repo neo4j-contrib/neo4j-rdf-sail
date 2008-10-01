@@ -10,6 +10,7 @@ import java.util.Map;
 import org.neo4j.rdf.sail.FulltextQueryResult;
 import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
+import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -59,7 +60,7 @@ class LocalSailConnection implements NeoRdfSailConnection
 		}
 	}
 
-    public Statement addStatement( Map<String, Object> metadata, Resource subj,
+    public Statement addStatement( Map<String, Literal> metadata, Resource subj,
         URI pred, Value obj, Resource... contexts ) throws SailException
     {
         try
@@ -281,7 +282,7 @@ class LocalSailConnection implements NeoRdfSailConnection
     }
 	
 	public void setStatementMetadata( Statement statement,
-	    Map<String, Object> metadata ) throws SailException
+	    Map<String, Literal> metadata ) throws SailException
     {
 	    try
 	    {
