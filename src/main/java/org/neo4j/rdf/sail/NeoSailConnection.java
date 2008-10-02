@@ -227,7 +227,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         String query )
     {
         Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
-        return new QueryResultIteration( queryResult.iterator() );
+        return new QueryResultIteration( queryResult.iterator(), this );
     }
     
     public void reindexFulltextIndex()

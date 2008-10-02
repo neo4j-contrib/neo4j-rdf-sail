@@ -12,9 +12,13 @@ public class QueryResultIteration
     extends IteratorWrapper<FulltextQueryResult, QueryResult>
     implements CloseableIteration<FulltextQueryResult, SailException>
 {
-    QueryResultIteration( Iterator<QueryResult> queryResult )
+    private NeoSailConnection connection;
+    
+    QueryResultIteration( Iterator<QueryResult> queryResult,
+        NeoSailConnection connection )
     {
         super( queryResult );
+        this.connection = connection;
     }
     
     public void close() throws SailException
@@ -26,6 +30,14 @@ public class QueryResultIteration
     protected FulltextQueryResult underlyingObjectToObject(
         QueryResult object )
     {
-        return new FulltextQueryResult( object );
+        connection.suspendOtherAndResumeThis();
+        try
+        {
+            return new FulltextQueryResult( object );
+        }
+        finally
+        {
+            connection.suspendThisAndResumeOther();
+        }
     }
 }
