@@ -9,23 +9,23 @@ import org.neo4j.util.IteratorWrapper;
 import org.openrdf.sail.SailException;
 
 public class QueryResultIteration
-	extends IteratorWrapper<FulltextQueryResult, QueryResult>
-	implements CloseableIteration<FulltextQueryResult, SailException>
+    extends IteratorWrapper<FulltextQueryResult, QueryResult>
+    implements CloseableIteration<FulltextQueryResult, SailException>
 {
-	QueryResultIteration( Iterator<QueryResult> queryResult )
-	{
-		super( queryResult );
-	}
-
-	public void close() throws SailException
+    QueryResultIteration( Iterator<QueryResult> queryResult )
     {
-		// Not needed
+        super( queryResult );
     }
-
-	@Override
+    
+    public void close() throws SailException
+    {
+        // Not needed
+    }
+    
+    @Override
     protected FulltextQueryResult underlyingObjectToObject(
         QueryResult object )
     {
-		return new FulltextQueryResult( object );
+        return new FulltextQueryResult( object );
     }
 }

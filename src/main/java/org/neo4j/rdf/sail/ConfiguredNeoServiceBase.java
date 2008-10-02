@@ -68,7 +68,7 @@ public class ConfiguredNeoServiceBase implements NeoService
     
     public Relationship getRelationshipById( long id )
     {
-    	return neo().getRelationshipById( id );
+        return neo().getRelationshipById( id );
     }
 
     public Node getReferenceNode()

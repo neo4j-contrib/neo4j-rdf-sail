@@ -5,6 +5,6 @@ import java.rmi.RemoteException;
 
 interface RmiSailChangedListenerCallback extends Remote
 {
-	boolean sailChanged( boolean statementsAdded, boolean statementsRemoved )
-	    throws RemoteException;
+    boolean sailChanged( boolean statementsAdded, boolean statementsRemoved )
+        throws RemoteException;
 }

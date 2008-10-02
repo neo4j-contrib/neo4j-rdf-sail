@@ -49,9 +49,9 @@ public class NeoSail implements Sail {
     }
 
     public void shutDown() throws SailException {
-//    	System.out.println( "Number of history connections: " +
-//    		connectionCounter.get() );
-    	store.shutDown();
+//      System.out.println( "Number of history connections: " +
+//          connectionCounter.get() );
+        store.shutDown();
     }
 
     public boolean isWritable() throws SailException {
@@ -59,9 +59,9 @@ public class NeoSail implements Sail {
     }
 
     public SailConnection getConnection() throws SailException {
-    	connectionCounter.incrementAndGet();
+        connectionCounter.incrementAndGet();
         NeoSailConnection connection =
-        	new NeoSailConnection(neo, store, this, valueFactory, listeners);
+            new NeoSailConnection(neo, store, this, valueFactory, listeners);
         return connection;
     }
 

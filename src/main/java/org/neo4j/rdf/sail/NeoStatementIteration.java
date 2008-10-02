@@ -29,11 +29,11 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
     }
 
     public boolean hasNext() throws SailException {
-    	if ( nextStatement != null )
-    	{
-    		return true;
-    	}
-    	
+        if ( nextStatement != null )
+        {
+            return true;
+        }
+        
         connection.suspendOtherAndResumeThis();
         try
         {
@@ -51,13 +51,13 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
 
     public Statement next() throws SailException 
     {
-    	if ( !hasNext() )
-    	{
-    		throw new IllegalStateException();
-    	}
-    	Statement result = nextStatement;
-    	nextStatement = null;
-    	return result;
+        if ( !hasNext() )
+        {
+            throw new IllegalStateException();
+        }
+        Statement result = nextStatement;
+        nextStatement = null;
+        return result;
     }
     
     private Statement fetchNextStatement() throws SailException

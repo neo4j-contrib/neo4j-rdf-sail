@@ -28,15 +28,15 @@ public class ContextHandling {
     
     public static org.neo4j.rdf.model.Context[] createContexts( final Resource... resources )
     {
-    	if ( resources == null )
-    	{
-    		return new Context[] { org.neo4j.rdf.model.Context.NULL };
-    	}
-    	
+        if ( resources == null )
+        {
+            return new Context[] { org.neo4j.rdf.model.Context.NULL };
+        }
+        
         Context[] neoContexts = new Context[ resources.length ];
         for ( int i = 0; i < resources.length; i++ )
         {
-        	neoContexts[ i ] = createContext( resources[ i ] );
+            neoContexts[ i ] = createContext( resources[ i ] );
         }
         return neoContexts;
     }

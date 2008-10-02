@@ -25,7 +25,7 @@ import org.openrdf.sail.SailException;
 public interface NeoRdfSailConnection extends SailConnection
 {
     CloseableIteration<? extends FulltextQueryResult, SailException>
-    	evaluate( String query ) throws SailException;
+        evaluate( String query ) throws SailException;
     
     void setStatementMetadata( Statement statement,
         Map<String, Literal> metadata ) throws SailException;

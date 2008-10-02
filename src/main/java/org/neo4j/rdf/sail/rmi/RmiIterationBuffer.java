@@ -6,7 +6,7 @@ import java.util.Collection;
 
 interface RmiIterationBuffer<E, X extends Exception> extends Remote
 {
-	void close() throws X, RemoteException;
-
-	Collection<E> getChunk() throws X, RemoteException;
+    void close() throws X, RemoteException;
+    
+    Collection<E> getChunk() throws X, RemoteException;
 }

@@ -102,33 +102,33 @@ public class NeoSailConnection implements NeoRdfSailConnection
 
     private void setupTransaction() 
     {
-    	try
-    	{
-    		otherTx = tm.getTransaction();
-    		if ( otherTx != null )
-    		{
-    			tm.suspend();
-    		}
-    		tm.begin();
-    		transaction = tm.getTransaction();
-    		tm.suspend();
-    		if ( otherTx != null )
-    		{
-    			tm.resume( otherTx );
-    		}
-    	}
-    	catch ( Exception e )
-    	{
-    		throw new RuntimeException( e );
-    	}
-	}
+        try
+        {
+            otherTx = tm.getTransaction();
+            if ( otherTx != null )
+            {
+                tm.suspend();
+            }
+            tm.begin();
+            transaction = tm.getTransaction();
+            tm.suspend();
+            if ( otherTx != null )
+            {
+                tm.resume( otherTx );
+            }
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
     
     void suspendOtherAndResumeThis()
     {
-    	try
-    	{
-    	    Transaction currentTx = tm.getTransaction();
-    	    if ( currentTx == transaction )
+        try
+        {
+            Transaction currentTx = tm.getTransaction();
+            if ( currentTx == transaction )
             {
                 otherTx = null;
                 return;
@@ -139,11 +139,11 @@ public class NeoSailConnection implements NeoRdfSailConnection
                 tm.suspend();
                 tm.resume( transaction );
             }
-    	}
-    	catch ( Exception e )
-    	{
-    	    throw new RuntimeException( e );
-    	}
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
     }
     
     void suspendThisAndResumeOther()
@@ -224,24 +224,24 @@ public class NeoSailConnection implements NeoRdfSailConnection
     }
     
     public CloseableIteration<FulltextQueryResult, SailException> evaluate(
-    	String query )
+        String query )
     {
-    	Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
-    	return new QueryResultIteration( queryResult.iterator() );
+        Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
+        return new QueryResultIteration( queryResult.iterator() );
     }
     
     public void reindexFulltextIndex()
     {
-    	FulltextIndex fulltextIndex =
-    		( ( RdfStoreImpl ) store ).getFulltextIndex();
-    	if ( fulltextIndex == null )
-    	{
-    		throw new RuntimeException( "Fulltext index not used, please " +
-    			"supply it in the RdfStore constructor" );
-    	}
-    	
-    	fulltextIndex.clear();
-    	( ( RdfStoreImpl ) store ).reindexFulltextIndex();
+        FulltextIndex fulltextIndex =
+            ( ( RdfStoreImpl ) store ).getFulltextIndex();
+        if ( fulltextIndex == null )
+        {
+            throw new RuntimeException( "Fulltext index not used, please " +
+                "supply it in the RdfStore constructor" );
+        }
+        
+        fulltextIndex.clear();
+        ( ( RdfStoreImpl ) store ).reindexFulltextIndex();
     }
 
     // TODO
@@ -351,19 +351,19 @@ public class NeoSailConnection implements NeoRdfSailConnection
     }
 
     public synchronized void addStatement( final Resource subject, 
-    	final URI predicate, final Value object, final Resource... contexts ) 
-    		throws SailException
+        final URI predicate, final Value object, final Resource... contexts ) 
+        throws SailException
     {
-    	suspendOtherAndResumeThis();
-    	try
-    	{
-    	    innerAddStatement( subject, predicate, object, contexts );
-    	}
-    	finally
-    	{
-    	    suspendThisAndResumeOther();
-    	}
-    	sendEventsToListeners( subject, predicate, object, contexts );
+        suspendOtherAndResumeThis();
+        try
+        {
+            innerAddStatement( subject, predicate, object, contexts );
+        }
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
+        sendEventsToListeners( subject, predicate, object, contexts );
     }
     
     private void sendEventsToListeners( final Resource subject,
@@ -581,9 +581,9 @@ public class NeoSailConnection implements NeoRdfSailConnection
         {
             try
             {
-            	int txId = getTxId();
+                int txId = getTxId();
                 transaction.rollback();
-            	commitFulltextIndex( txId, false );
+                commitFulltextIndex( txId, false );
                 tm.begin();
                 transaction = tm.getTransaction();
             }
@@ -622,18 +622,18 @@ public class NeoSailConnection implements NeoRdfSailConnection
     
     private void commitFulltextIndex( int txId, boolean commit )
     {
-    	// TODO Just a temporary hack now
-    	FulltextIndex fulltextIndex =
-    		( ( RdfStoreImpl ) store ).getFulltextIndex();
-    	if ( fulltextIndex != null )
-    	{
-    		fulltextIndex.end( txId, commit );
-    	}
+        // TODO Just a temporary hack now
+        FulltextIndex fulltextIndex =
+            ( ( RdfStoreImpl ) store ).getFulltextIndex();
+        if ( fulltextIndex != null )
+        {
+            fulltextIndex.end( txId, commit );
+        }
     }
     
     private int getTxId() throws Exception
     {
-    	return tm.getTransaction().hashCode();
+        return tm.getTransaction().hashCode();
     }
     
     public synchronized void commit() throws SailException
@@ -641,24 +641,24 @@ public class NeoSailConnection implements NeoRdfSailConnection
 //        System.out.println( "NeoSailConnection: commit invoked, at " +
 //            writeOperationCount.get() + " op count (total of " +
 //            totalAddCount.get() + ")" );
-    	suspendOtherAndResumeThis();
-    	try
-    	{
-    		int txId = getTxId();
-    		tm.commit();
-    		commitFulltextIndex( txId, true );
-    		tm.begin();
-    		transaction = tm.getTransaction();
-    		clearBatchCommit();
-    	}
-    	catch ( Exception e )
-    	{
-    		throw new RuntimeException( e );
-    	}
-    	finally
-    	{
-    		suspendThisAndResumeOther();
-    	}
+        suspendOtherAndResumeThis();
+        try
+        {
+            int txId = getTxId();
+            tm.commit();
+            commitFulltextIndex( txId, true );
+            tm.begin();
+            transaction = tm.getTransaction();
+            clearBatchCommit();
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
     }
 
     public synchronized void rollback() throws SailException
@@ -666,23 +666,23 @@ public class NeoSailConnection implements NeoRdfSailConnection
 //        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
 //            writeOperationCount.get() + " op count" );        
         suspendOtherAndResumeThis();
-    	try
-    	{
-    		int txId = getTxId();
-    		transaction.rollback();
-    		commitFulltextIndex( txId, false );
-    		tm.begin();
-    		transaction = tm.getTransaction();
-    		clearBatchCommit();
-    	}
-    	catch ( Exception e )
-    	{
-    		throw new RuntimeException( e );
-    	}
-    	finally
-    	{
-    		suspendThisAndResumeOther();
-    	}
+        try
+        {
+            int txId = getTxId();
+            transaction.rollback();
+            commitFulltextIndex( txId, false );
+            tm.begin();
+            transaction = tm.getTransaction();
+            clearBatchCommit();
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( e );
+        }
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
     }
 
     private synchronized void checkBatchCommit() throws SailException
@@ -691,16 +691,16 @@ public class NeoSailConnection implements NeoRdfSailConnection
         {
             try
             {
-            	int txId = getTxId();
-            	tm.commit();
-            	commitFulltextIndex( txId, true );
-            	tm.begin();
-            	transaction = tm.getTransaction();
-            	clearBatchCommit();
+                int txId = getTxId();
+                tm.commit();
+                commitFulltextIndex( txId, true );
+                tm.begin();
+                transaction = tm.getTransaction();
+                clearBatchCommit();
             }
             catch ( Exception e )
             {
-            	throw new RuntimeException( e );
+                throw new RuntimeException( e );
             }
         }
     }
