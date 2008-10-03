@@ -71,6 +71,7 @@ public class RmiSailTest extends BaseSailTest
     
 	public static void main( String[] args ) throws Exception
 	{
+		/* RESTORE ME
 		LocateRegistry.createRegistry( PORT );
 		final NeoService neo = NeoTestUtils.createNeo();
         final IndexService idx = new CachingLuceneIndexService( neo );
@@ -90,6 +91,7 @@ public class RmiSailTest extends BaseSailTest
 		RmiSailServer.register( new NeoSail( neo, store ), new java.net.URI(
 		    RESOURCE_URI ) );
 		System.out.println( "Server started" );
+		*/
 	}
 
 	@Test

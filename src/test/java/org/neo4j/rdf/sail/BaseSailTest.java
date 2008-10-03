@@ -50,10 +50,12 @@ import org.openrdf.sail.SailChangedListener;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
+import org.neo4j.rdf.fulltext.FulltextIndex;
 
 public abstract class BaseSailTest
 {
 	private Sail sail = null;
+	private FulltextIndex fulltextIndex = null;
 
 	@Before
 	public final void setUp() throws Exception
@@ -65,15 +67,30 @@ public abstract class BaseSailTest
 		RepositoryConnection rc = repo.getConnection();
 		rc.add( BaseSailTest.class.getResource( "neoSailTest.trig" ), "",
 		    RDFFormat.TRIG );
+		rc.add( BaseSailTest.class.getResource( "fulltextTest.trig" ), "",
+		    RDFFormat.TRIG );
+		rc.add( BaseSailTest.class.getResource( "docs.trig" ), "",
+		    RDFFormat.TRIG );
 		rc.commit();
 		rc.close();
+
+		/*
+		while (!fulltextIndex.queueIsEmpty()) {
+		    Object mutex = "";
+		    synchronized (mutex) {
+			    System.out.println("waiting for FulltextIndex queue to empty");
+			    mutex.wait(100);
+		    }
+		}*/
 	}
 
-	protected static final RdfStore createStore( NeoService neo, 
+	protected final RdfStore createStore( NeoService neo, 
         IndexService indexService )
 	{
+		fulltextIndex = NeoTestUtils.createFulltextIndex( neo );
+		fulltextIndex.clear();
 		return new VerboseQuadStore( neo, indexService, null,
-			NeoTestUtils.createFulltextIndex( neo ) );
+			fulltextIndex );
 	}
     
 	protected abstract void before() throws Exception;
@@ -102,7 +119,56 @@ public abstract class BaseSailTest
 
 	protected abstract Sail createSail() throws Exception;
 
-	// statement manipulation //////////////////////////////////////////////////
+    // full text search ////////////////////////////////////////////////////////
+
+	@Test
+    public void testNeo() throws Exception {
+        NeoRdfSailConnection sc;
+        sc = (NeoRdfSailConnection) sail.getConnection();
+        try {
+            evaluateFreetextQuery("Yoichiro", sc);
+//            testFreetextQuery("Yoichiro", sc);
+//            testFreetextQuery("Endo", sc);
+//            testFreetextQuery("Lilia", sc);
+//            testFreetextQuery("Moshkina", sc);
+        } finally {
+            sc.close();
+        }
+
+//        printRepository(repo, RDFFormat.TRIG, System.out);
+    }
+
+    private void evaluateFreetextQuery(final String query,
+                                       final NeoRdfSailConnection sc) throws SailException {
+        CloseableIteration<? extends FulltextQueryResult, SailException> iter;
+        iter = sc.evaluate(query);
+        try {
+            while (iter.hasNext()) {
+                FulltextQueryResult r = iter.next();
+
+                double score = r.getScore();
+                String snippet = r.getSnippet();
+                Statement st = r.getStatement();
+                Resource subject = st.getSubject();
+                URI predicate = st.getPredicate();
+                Value object = st.getObject();
+                Resource context = st.getContext();
+
+                System.out.println("result for query \"" + query + "\":");
+                System.out.println("    score: " + score);
+                System.out.println("    snippet: " + snippet);
+                System.out.println("    statement:");
+                System.out.println("        subject: " + subject);
+                System.out.println("        predicate: " + predicate);
+                System.out.println("        object: " + object);
+                System.out.println("        context: " + context);
+            }
+        } finally {
+            iter.close();
+        }
+    }
+
+    // statement manipulation //////////////////////////////////////////////////
 	@Test
 	public void testGetStatementsS_POG() throws Exception
 	{

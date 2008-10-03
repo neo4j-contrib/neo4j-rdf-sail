@@ -1,0 +1,36 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix : <http://knowledgereefsystems.com/agripple/neo/freetext/test/>.
+
+# Put some statements in the default context
+{
+    # Use plain literals
+    :conquest a foaf:HorsemanOfTheApocalypse;
+        foaf:name "Conquest";
+        rdfs:comment "carries a bow with arrow which has no arrow head which symbolizes a non-violent rise to power";
+        rdfs:comment "wears a crown";
+        rdfs:comment "rides a white horse".
+
+    # Use typed literals
+    :war a foaf:HorsemanOfTheApocalypse;
+        foaf:name "War"^^xsd:string;
+        rdfs:comment "carries a sword"^^xsd:string;
+        rdfs:comment "rides a fiery red horse"^^xsd:string.
+}
+
+# Put some statements in a specific context
+:ctx1
+{
+    # Use plain literals
+    :pestilence a foaf:HorsemanOfTheApocalypse;
+        foaf:name "Pestilence";
+        rdfs:comment "carries scales";
+        rdfs:comment "rides a black horse".
+
+     # Use typed literals
+    :death a foaf:HorsemanOfTheApocalypse;
+        foaf:name "Death"^^xsd:string;
+        rdfs:comment "carries a scythe"^^xsd:string;
+        rdfs:comment "rides a pale green horse"^^xsd:string.
+}
