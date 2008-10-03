@@ -3,10 +3,10 @@ package org.neo4j.rdf.sail.rmi;
 import java.net.URI;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+
 import org.junit.Test;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.sail.BaseSailTest;
-import org.neo4j.rdf.sail.BatchInserter;
 import org.neo4j.rdf.sail.NeoSail;
 import org.neo4j.rdf.sail.NeoTestUtils;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
