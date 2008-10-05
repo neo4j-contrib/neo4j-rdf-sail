@@ -62,6 +62,6 @@ public class NeoSailTest extends BaseSailTest
 	@Override
 	protected void deleteEntireNodeSpace() throws Exception
 	{
-		NeoTestUtils.deleteEntireNodeSpace( neo );
+//		NeoTestUtils.deleteEntireNodeSpace( neo );
 	}
 }

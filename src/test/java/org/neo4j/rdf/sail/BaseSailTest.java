@@ -67,21 +67,23 @@ public abstract class BaseSailTest
 		RepositoryConnection rc = repo.getConnection();
 		rc.add( BaseSailTest.class.getResource( "neoSailTest.trig" ), "",
 		    RDFFormat.TRIG );
-		rc.add( BaseSailTest.class.getResource( "fulltextTest.trig" ), "",
-		    RDFFormat.TRIG );
-		rc.add( BaseSailTest.class.getResource( "docs.trig" ), "",
-		    RDFFormat.TRIG );
+//		rc.add( BaseSailTest.class.getResource( "fulltextTest.trig" ), "",
+//		    RDFFormat.TRIG );
+//		rc.add( BaseSailTest.class.getResource( "docs.trig" ), "",
+//		    RDFFormat.TRIG );
 		rc.commit();
 		rc.close();
-
-		/*
-		while (!fulltextIndex.queueIsEmpty()) {
-		    Object mutex = "";
-		    synchronized (mutex) {
-			    System.out.println("waiting for FulltextIndex queue to empty");
-			    mutex.wait(100);
-		    }
-		}*/
+	}
+	
+	protected void waitForFulltextIndex() throws Exception
+	{
+        while (!fulltextIndex.queueIsEmpty()) {
+            Object mutex = "";
+            synchronized (mutex) {
+//                System.out.println("waiting for FulltextIndex queue to empty");
+                mutex.wait(100);
+            }
+        }
 	}
 
 	protected final RdfStore createStore( NeoService neo, 
@@ -123,6 +125,16 @@ public abstract class BaseSailTest
 
 	@Test
     public void testNeo() throws Exception {
+        Repository repo = new SailRepository( sail );
+        RepositoryConnection rc = repo.getConnection();
+        rc.add( BaseSailTest.class.getResource( "fulltextTest.trig" ), "",
+            RDFFormat.TRIG );
+        rc.add( BaseSailTest.class.getResource( "docs.trig" ), "",
+            RDFFormat.TRIG );
+        rc.commit();
+        rc.close();
+        
+        waitForFulltextIndex();
         NeoRdfSailConnection sc;
         sc = (NeoRdfSailConnection) sail.getConnection();
         try {
@@ -1389,6 +1401,7 @@ public abstract class BaseSailTest
 	@Test
 	public void testFulltextSearch() throws Exception
 	{
+	    waitForFulltextIndex();
 		SailConnection sc;
 		int count;
 		boolean includeInferred = false;
@@ -1422,14 +1435,15 @@ public abstract class BaseSailTest
 			sc.close();
 			sc = sail.getConnection();
 			
+			waitForFulltextIndex();
 			// TODO Work-around for the fulltext index, which is asynchronous
-			long time = System.currentTimeMillis();
-			while ( System.currentTimeMillis() - time < 3000 &&
-				countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
-					"integer" ) ) == 0 )
-			{
-				Thread.sleep( 100 );
-			}
+//			long time = System.currentTimeMillis();
+//			while ( System.currentTimeMillis() - time < 3000 &&
+//				countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
+//					"integer" ) ) == 0 )
+//			{
+//				Thread.sleep( 100 );
+//			}
 			
 			count = countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
 				"Lorem ipsum" ) );
