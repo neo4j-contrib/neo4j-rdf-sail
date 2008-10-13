@@ -1436,14 +1436,6 @@ public abstract class BaseSailTest
 			sc = sail.getConnection();
 			
 			waitForFulltextIndex();
-			// TODO Work-around for the fulltext index, which is asynchronous
-//			long time = System.currentTimeMillis();
-//			while ( System.currentTimeMillis() - time < 3000 &&
-//				countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
-//					"integer" ) ) == 0 )
-//			{
-//				Thread.sleep( 100 );
-//			}
 			
 			count = countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
 				"Lorem ipsum" ) );
@@ -1453,7 +1445,7 @@ public abstract class BaseSailTest
 			assertEquals( 2, count );
 			count = countStatements( ( ( NeoRdfSailConnection ) sc ).evaluate(
 				"aliq* integer" ) );
-			assertEquals( 1, count );
+			assertEquals( 2, count );
 			
 			sc.removeStatements( uriA, null, null );
 			sc.commit();
