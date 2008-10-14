@@ -226,8 +226,16 @@ public class NeoSailConnection implements NeoRdfSailConnection
     public CloseableIteration<FulltextQueryResult, SailException> evaluate(
         String query )
     {
-        Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
-        return new QueryResultIteration( queryResult.iterator(), this );
+        suspendOtherAndResumeThis();
+        try
+        {
+            Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
+            return new QueryResultIteration( queryResult.iterator(), this );
+        }
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
     }
     
     public void reindexFulltextIndex()
