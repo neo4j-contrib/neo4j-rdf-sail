@@ -33,4 +33,6 @@ public interface NeoRdfSailConnection extends SailConnection
     Statement addStatement( Map<String, Literal> metadata, Resource subject,
         URI predicate, Value object, Resource... contexts )
         throws SailException;
+    
+    void reindexFulltextIndex() throws SailException;
 }

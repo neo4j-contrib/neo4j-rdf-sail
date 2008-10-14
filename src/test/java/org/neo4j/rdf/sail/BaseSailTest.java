@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.api.core.NeoService;
+import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.neo4j.util.index.IndexService;
@@ -50,7 +51,6 @@ import org.openrdf.sail.SailChangedListener;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
-import org.neo4j.rdf.fulltext.FulltextIndex;
 
 public abstract class BaseSailTest
 {
@@ -90,7 +90,7 @@ public abstract class BaseSailTest
         IndexService indexService )
 	{
 		fulltextIndex = NeoTestUtils.createFulltextIndex( neo );
-		fulltextIndex.clear();
+		clearFulltextIndex();
 		return new VerboseQuadStore( neo, indexService, null,
 			fulltextIndex );
 	}
@@ -108,6 +108,14 @@ public abstract class BaseSailTest
 	}
 
 	protected abstract void deleteEntireNodeSpace() throws Exception;
+	
+	protected void clearFulltextIndex()
+	{
+        if ( fulltextIndex != null )
+        {
+            fulltextIndex.clear();
+        }
+	}
 
 	protected Sail sail()
 	{
@@ -137,13 +145,32 @@ public abstract class BaseSailTest
         waitForFulltextIndex();
         NeoRdfSailConnection sc;
         sc = (NeoRdfSailConnection) sail.getConnection();
+        int countBefore;
         try {
+            countBefore = countStatements( sc.evaluate( "Yoichiro" ) );
+            assertTrue( countBefore > 0 );
             evaluateFreetextQuery("Yoichiro", sc);
 //            testFreetextQuery("Yoichiro", sc);
 //            testFreetextQuery("Endo", sc);
 //            testFreetextQuery("Lilia", sc);
 //            testFreetextQuery("Moshkina", sc);
         } finally {
+            sc.close();
+        }
+        
+        clearFulltextIndex();
+        sc = ( NeoRdfSailConnection ) sail.getConnection();
+        try
+        {
+            assertEquals( 0, countStatements( sc.evaluate( "Yoichiro" ) ) );
+            sc.reindexFulltextIndex();
+            waitForFulltextIndex();
+            assertEquals( countBefore, countStatements(
+                sc.evaluate( "Yoichiro" ) ) );
+            evaluateFreetextQuery( "Yoichiro", sc );
+        }
+        finally
+        {
             sc.close();
         }
 

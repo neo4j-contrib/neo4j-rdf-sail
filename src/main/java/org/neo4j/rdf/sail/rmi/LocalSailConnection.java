@@ -293,4 +293,16 @@ class LocalSailConnection implements NeoRdfSailConnection
             throw new SailException( RMI_CONNECTION_FAILED, e );
         }
     }
+    
+    public void reindexFulltextIndex() throws SailException
+    {
+        try
+        {
+            connection.reindexFulltextIndex();
+        }
+        catch ( RemoteException e )
+        {
+            throw new SailException( RMI_CONNECTION_FAILED, e );
+        }
+    }
 }

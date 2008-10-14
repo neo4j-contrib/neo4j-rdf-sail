@@ -232,16 +232,24 @@ public class NeoSailConnection implements NeoRdfSailConnection
     
     public void reindexFulltextIndex()
     {
-        FulltextIndex fulltextIndex =
-            ( ( RdfStoreImpl ) store ).getFulltextIndex();
-        if ( fulltextIndex == null )
+        suspendOtherAndResumeThis();
+        try
         {
-            throw new RuntimeException( "Fulltext index not used, please " +
-                "supply it in the RdfStore constructor" );
+            FulltextIndex fulltextIndex =
+                ( ( RdfStoreImpl ) store ).getFulltextIndex();
+            if ( fulltextIndex == null )
+            {
+                throw new RuntimeException( "Fulltext index not used, please " +
+                    "supply it in the RdfStore constructor" );
+            }
+            
+            fulltextIndex.clear();
+            ( ( RdfStoreImpl ) store ).reindexFulltextIndex();
         }
-        
-        fulltextIndex.clear();
-        ( ( RdfStoreImpl ) store ).reindexFulltextIndex();
+        finally
+        {
+            suspendThisAndResumeOther();
+        }
     }
 
     // TODO

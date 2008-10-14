@@ -174,4 +174,9 @@ RmiSailConnection
         NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
         neoRdfSailCollection.setStatementMetadata( statement, metadata );
     }
+    
+    public void reindexFulltextIndex() throws SailException, RemoteException
+    {
+        getNeoRdfConnection().reindexFulltextIndex();
+    }
 }

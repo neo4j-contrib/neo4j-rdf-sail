@@ -2,10 +2,8 @@ package org.neo4j.rdf.sail;
 
 import org.junit.Test;
 import org.neo4j.api.core.NeoService;
-import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
-import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.util.index.IndexService;
 import org.openrdf.sail.Sail;
 
@@ -36,12 +34,7 @@ public class NeoSailTest extends BaseSailTest
 	@Override
     protected void tearDownSail() throws Exception
     {
-		FulltextIndex fulltextIndex =
-			( ( RdfStoreImpl ) store ).getFulltextIndex();
-		if ( fulltextIndex != null )
-		{
-			fulltextIndex.clear();
-		}
+	    clearFulltextIndex();
 	    super.tearDownSail();
     }
 

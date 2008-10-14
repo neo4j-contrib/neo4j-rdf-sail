@@ -69,4 +69,6 @@ interface RmiSailConnection extends Remote
     RmiIterationBuffer<? extends Statement, SailException> getStatements(
         Resource subj, URI pred, Value obj, boolean includeInferred,
         Resource[] contexts ) throws SailException, RemoteException;
+    
+    void reindexFulltextIndex() throws SailException, RemoteException;
 }
