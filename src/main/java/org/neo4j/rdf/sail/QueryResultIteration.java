@@ -27,17 +27,37 @@ public class QueryResultIteration
     }
     
     @Override
-    protected FulltextQueryResult underlyingObjectToObject(
-        QueryResult object )
+    public boolean hasNext()
     {
         connection.suspendOtherAndResumeThis();
         try
         {
-            return new FulltextQueryResult( object );
+            return super.hasNext();
         }
         finally
         {
             connection.suspendThisAndResumeOther();
         }
+    }
+
+    @Override
+    public FulltextQueryResult next()
+    {
+        connection.suspendOtherAndResumeThis();
+        try
+        {
+            return super.next();
+        }
+        finally
+        {
+            connection.suspendThisAndResumeOther();
+        }
+    }
+    
+    @Override
+    protected FulltextQueryResult underlyingObjectToObject(
+        QueryResult object )
+    {
+        return new FulltextQueryResult( object );
     }
 }
