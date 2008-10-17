@@ -33,4 +33,15 @@ public class FulltextQueryResult implements Serializable
     {
         return this.snippet;
     }
+    
+    public String toString()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("(")
+	        .append("statement:").append(statement).append(", ")
+	        .append("score:").append(score).append(", ")
+		// TODO: snippet should be escaped
+	        .append("snippet:\"").append(snippet).append("\")");
+        return sb.toString();	    
+    }
 }

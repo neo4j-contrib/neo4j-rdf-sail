@@ -34,11 +34,11 @@ public class SailConnectionTripleSource implements TripleSource {
                     baseConnection.getStatements(subj, pred, obj, includeInferred, contexts));
         } catch (SailException e) {
             return new EmptyCloseableIteration<Statement, QueryEvaluationException>();
-        } finally {
+        }/* finally {
             TemporaryLogger.getLogger().info( "SailConnectionTripleSource.getStatements: " +
                 "S:" + subj + "  P:" + pred + "  O:" + obj + "  G:" + contextsString( contexts ) +
                 "  time:" + timer.lap() );
-        }
+        }*/
     }
     
     private String contextsString( Resource... contexts )
@@ -56,7 +56,7 @@ public class SailConnectionTripleSource implements TripleSource {
             {
                 buffer.append( "," );
             }
-            buffer.append( context.toString() );
+            buffer.append( (null == context) ? "null" : context.toString() );
         }
         buffer.append( "]" );
         return buffer.toString();
