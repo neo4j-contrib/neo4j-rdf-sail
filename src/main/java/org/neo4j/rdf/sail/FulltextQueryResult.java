@@ -34,6 +34,7 @@ public class FulltextQueryResult implements Serializable
         return this.snippet;
     }
     
+    @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder();
