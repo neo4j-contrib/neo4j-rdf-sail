@@ -1,6 +1,10 @@
 package org.neo4j.rdf.sail;
 
-import java.io.File;
+public abstract class Playbacker
+{
+}
+
+/*import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
@@ -83,3 +87,4 @@ public class Playbacker
 	{
 	}
 }
+*/
