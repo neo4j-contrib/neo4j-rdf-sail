@@ -67,7 +67,6 @@ public class NeoSailConnection implements NeoRdfSailConnection
     private final Collection<SailChangedListener> sailChangedListeners;
     private final int batchSize;
     private Transaction transaction;
-    private Transaction otherTx;
     private boolean open;
     private final AtomicInteger writeOperationCount = new AtomicInteger();
     private final Sail sail;
@@ -104,67 +103,71 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         try
         {
-            otherTx = tm.getTransaction();
+            Transaction otherTx = tm.getTransaction();
             if ( otherTx != null )
             {
                 tm.suspend();
             }
             tm.begin();
             transaction = tm.getTransaction();
-            tm.suspend();
             if ( otherTx != null )
             {
+                tm.suspend();
                 tm.resume( otherTx );
             }
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
     }
     
-    void suspendOtherAndResumeThis()
+    Transaction suspendOtherAndResumeThis()
     {
         try
         {
-            Transaction currentTx = tm.getTransaction();
-            if ( currentTx == transaction )
+            Transaction otherTx = tm.getTransaction();
+            if ( otherTx == transaction )
             {
-                otherTx = null;
-                return;
+                return null;
             }
             else
             {
-                otherTx = currentTx;
-                tm.suspend();
+                if ( otherTx != null )
+                {
+                    tm.suspend();
+                }
                 tm.resume( transaction );
+                return otherTx;
             }
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
     }
     
-    void suspendThisAndResumeOther()
+    void suspendThisAndResumeOther( Transaction otherTx )
     {
         try
         {
-//            if ( otherTx != null )
-//            {
+            if ( otherTx != null )
+            {
                 tm.suspend();
                 tm.resume( otherTx );
-//            }
+            }
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
     }
     
-    private void resumeOther()
+    private void resumeOther( Transaction otherTx )
     {
-        assert transaction == null;
         try
         {
             if ( otherTx != null )
@@ -188,19 +191,23 @@ public class NeoSailConnection implements NeoRdfSailConnection
         open = false;
         commands.clear();
         rollback();
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             tm.commit();
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
         finally
         {
             transaction = null;
-            resumeOther();
+            if ( otherTx != null )
+            {
+                resumeOther( otherTx );
+            }
         }
     }
     
@@ -223,10 +230,10 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
     }
     
-    public CloseableIteration<FulltextQueryResult, SailException> evaluate(
+    public synchronized CloseableIteration<FulltextQueryResult, SailException> evaluate(
         String query )
     {
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
@@ -234,13 +241,13 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
     
-    public void reindexFulltextIndex()
+    public synchronized void reindexFulltextIndex()
     {
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             FulltextIndex fulltextIndex =
@@ -256,7 +263,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
 
@@ -318,7 +325,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
                                                                                 boolean includeInferred,
                                                                                 final Resource... contexts) throws SailException {
         
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             return new NeoStatementIteration( getNeoRdfStatements( subject,
@@ -326,20 +333,20 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
 
     public synchronized long size( final Resource... contexts ) throws SailException
     {
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             return store.size( ContextHandling.createContexts( contexts ) );
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
     
@@ -370,14 +377,14 @@ public class NeoSailConnection implements NeoRdfSailConnection
         final URI predicate, final Value object, final Resource... contexts ) 
         throws SailException
     {
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             innerAddStatement( subject, predicate, object, contexts );
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
         sendEventsToListeners( subject, predicate, object, contexts );
     }
@@ -421,7 +428,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         throws SailException
     {
         Statement result = null;
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             innerAddStatement( subject, predicate, object, contexts );
@@ -432,7 +439,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
         sendEventsToListeners( subject, predicate, object, contexts );
         return result;
@@ -441,7 +448,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     public synchronized void setStatementMetadata( Statement statement,
         Map<String, Literal> metadata ) throws SailException
     {
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             CompleteStatement neoStatement = getNeoRdfStatements(
@@ -451,7 +458,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
     
@@ -524,11 +531,11 @@ public class NeoSailConnection implements NeoRdfSailConnection
     	final URI predicate, final Value object, final Resource... contexts ) 
     		throws SailException
     {
-    	suspendOtherAndResumeThis();
-        commands.add( new Command( CommandType.REMOVE_STATEMENT, subject, 
-            predicate, object, contexts ) );
+    	Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
+            commands.add( new Command( CommandType.REMOVE_STATEMENT, subject, 
+                predicate, object, contexts ) );
             internalRemoveStatements( subject, predicate, object, contexts );
             checkBatchCommit();
         }
@@ -543,7 +550,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-        	suspendThisAndResumeOther();
+        	suspendThisAndResumeOther( otherTx );
         }
         
         // TODO: wildcard statements are not allowed by ValueFactoryImpl --
@@ -657,7 +664,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
 //        System.out.println( "NeoSailConnection: commit invoked, at " +
 //            writeOperationCount.get() + " op count (total of " +
 //            totalAddCount.get() + ")" );
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             int txId = getTxId();
@@ -669,11 +676,12 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
 
@@ -681,7 +689,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
 //        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
 //            writeOperationCount.get() + " op count" );        
-        suspendOtherAndResumeThis();
+        Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             int txId = getTxId();
@@ -693,11 +701,12 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         catch ( Exception e )
         {
+            e.printStackTrace();
             throw new RuntimeException( e );
         }
         finally
         {
-            suspendThisAndResumeOther();
+            suspendThisAndResumeOther( otherTx );
         }
     }
 
@@ -741,7 +750,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     public synchronized String getNamespace( final String prefix ) 
     	throws SailException
     {
-    	suspendOtherAndResumeThis();
+    	Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             String uri = ( String ) getNamespaceNode().getProperty( prefix,
@@ -750,21 +759,21 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-        	suspendThisAndResumeOther();
+        	suspendThisAndResumeOther( otherTx );
         }
     }
 
     public synchronized void setNamespace( final String prefix, final String uri )
         throws SailException
     {
-    	suspendOtherAndResumeThis();
+    	Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             getNamespaceNode().setProperty( prefix, uri );
         }
         finally
         {
-        	suspendThisAndResumeOther();
+        	suspendThisAndResumeOther( otherTx );
         }
     }
 
@@ -777,27 +786,27 @@ public class NeoSailConnection implements NeoRdfSailConnection
     public synchronized void removeNamespace( final String prefix ) 
     	throws SailException
     {
-    	suspendOtherAndResumeThis();
+    	Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             getNamespaceNode().removeProperty( prefix );
         }
         finally
         {
-        	suspendThisAndResumeOther();
+        	suspendThisAndResumeOther( otherTx );
         }
     }
 
     public synchronized void clearNamespaces() throws SailException
     {
-    	suspendOtherAndResumeThis();
+    	Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
             getNamespaceNode().delete();
         }
         finally
         {
-        	suspendThisAndResumeOther();
+        	suspendThisAndResumeOther( otherTx );
         }
     }
 

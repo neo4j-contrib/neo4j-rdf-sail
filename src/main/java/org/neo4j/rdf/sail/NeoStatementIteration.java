@@ -7,6 +7,8 @@ import org.neo4j.rdf.model.CompleteStatement;
 
 import java.util.Iterator;
 
+import javax.transaction.Transaction;
+
 /**
  * Author: josh
  * Date: Apr 25, 2008
@@ -33,19 +35,21 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
         {
             return true;
         }
-        
-        connection.suspendOtherAndResumeThis();
-        try
+        synchronized ( connection )
         {
-            if ( iterator.hasNext() )
+            Transaction otherTx = connection.suspendOtherAndResumeThis();
+            try
             {
-            	nextStatement = fetchNextStatement();
+                if ( iterator.hasNext() )
+                {
+                	nextStatement = fetchNextStatement();
+                }
+                return nextStatement != null;
             }
-            return nextStatement != null;
-        }
-        finally
-        {
-            connection.suspendThisAndResumeOther();
+            finally
+            {
+                connection.suspendThisAndResumeOther( otherTx );
+            }
         }
     }
 

@@ -4,6 +4,8 @@ import info.aduna.iteration.CloseableIteration;
 
 import java.util.Iterator;
 
+import javax.transaction.Transaction;
+
 import org.neo4j.rdf.fulltext.QueryResult;
 import org.neo4j.util.IteratorWrapper;
 import org.openrdf.sail.SailException;
@@ -29,28 +31,34 @@ public class QueryResultIteration
     @Override
     public boolean hasNext()
     {
-        connection.suspendOtherAndResumeThis();
-        try
+        synchronized ( connection )
         {
-            return super.hasNext();
-        }
-        finally
-        {
-            connection.suspendThisAndResumeOther();
+            Transaction otherTx = connection.suspendOtherAndResumeThis();
+            try
+            {
+                return super.hasNext();
+            }
+            finally
+            {
+                connection.suspendThisAndResumeOther( otherTx );
+            }
         }
     }
 
     @Override
     public FulltextQueryResult next()
     {
-        connection.suspendOtherAndResumeThis();
-        try
+        synchronized ( connection )
         {
-            return super.next();
-        }
-        finally
-        {
-            connection.suspendThisAndResumeOther();
+            Transaction otherTx = connection.suspendOtherAndResumeThis();
+            try
+            {
+                return super.next();
+            }
+            finally
+            {
+                connection.suspendThisAndResumeOther( otherTx );
+            }
         }
     }
     
