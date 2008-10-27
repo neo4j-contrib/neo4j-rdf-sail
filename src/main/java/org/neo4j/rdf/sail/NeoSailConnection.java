@@ -153,9 +153,9 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         try
         {
+            tm.suspend();
             if ( otherTx != null )
             {
-                tm.suspend();
                 tm.resume( otherTx );
             }
         }
@@ -190,11 +190,10 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         open = false;
         commands.clear();
-        rollback();
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
-            tm.commit();
+            tm.rollback();
         }
         catch ( Exception e )
         {
