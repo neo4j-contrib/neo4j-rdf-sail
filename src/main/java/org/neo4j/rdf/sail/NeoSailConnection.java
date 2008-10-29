@@ -110,9 +110,9 @@ public class NeoSailConnection implements NeoRdfSailConnection
             }
             tm.begin();
             transaction = tm.getTransaction();
+            tm.suspend();
             if ( otherTx != null )
             {
-                tm.suspend();
                 tm.resume( otherTx );
             }
         }
@@ -692,7 +692,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         try
         {
             int txId = getTxId();
-            transaction.rollback();
+            tm.rollback();
             commitFulltextIndex( txId, false );
             tm.begin();
             transaction = tm.getTransaction();
