@@ -8,6 +8,7 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.store.RdfStore;
+import org.neo4j.rdf.util.TemporaryLogger;
 
 import java.io.File;
 import java.util.Set;
@@ -49,6 +50,8 @@ public class NeoSail implements Sail {
     }
 
     public void shutDown() throws SailException {
+        TemporaryLogger.getLogger().info( getClass().getName() +
+            " shutDown called", new Exception() );
 //      System.out.println( "Number of history connections: " +
 //          connectionCounter.get() );
         store.shutDown();
