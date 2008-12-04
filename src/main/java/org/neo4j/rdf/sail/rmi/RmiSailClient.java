@@ -14,6 +14,11 @@ import org.openrdf.sail.SailChangedListener;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
+/**
+ * A {@link Sail} implementation which uses another {@link Sail} remotely.
+ * You can connect to instances which were registered with {@link RmiSailServer}
+ * in either this or another jvm instance.
+ */
 public class RmiSailClient implements Sail
 {
     static final String RMI_CONNECTION_FAILED = "RMI connection failed.";
@@ -33,6 +38,16 @@ public class RmiSailClient implements Sail
         return callback;
     }
     
+    /**
+     * Tries to connect to a registered {@link Sail} on the {@code resourceUri}.
+     * 
+     * @param resourceUri the URI where the remote {@link Sail} resides.
+     * The protocol must be "uri".
+     * @throws MalformedURLException if the URI was malformed.
+     * @throws RemoteException if an RMI problem occurs.
+     * @throws NotBoundException if no {@link Sail} have been registered at
+     * the given URI. 
+     */
     public RmiSailClient( URI resourceUri ) throws MalformedURLException,
         RemoteException, NotBoundException
     {

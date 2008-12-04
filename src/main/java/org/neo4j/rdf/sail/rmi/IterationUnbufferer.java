@@ -8,6 +8,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/**
+ * An iterator which resides on the client side, returning items gotten from
+ * a buffering (server side) iterator.
+ *
+ * @param <E> the type of items in the iteration.
+ * @param <X> the type of exception thrown if something goes wrong.
+ */
 class IterationUnbufferer<E, X extends Exception> implements
     CloseableIteration<E, X>
 {

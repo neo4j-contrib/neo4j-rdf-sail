@@ -22,8 +22,8 @@ import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
-class RmiSailConnectionImpl extends UnicastRemoteObject implements
-RmiSailConnection
+class RmiSailConnectionImpl extends UnicastRemoteObject
+    implements RmiSailConnection
 {
     private final SailConnection connection;
     private final RmiSailConnectionFactory factory;

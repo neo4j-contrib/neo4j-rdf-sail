@@ -10,6 +10,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * A buffering iterator which sits on the server side, fetching a bunch of
+ * items in an iteration each time to minimize the network overhead.
+ *
+ * @param <E> the type of items in the iteration.
+ * @param <X> the type of exception thrown if something goes wrong.
+ */
 class IterationBufferer<E, X extends Exception> extends UnicastRemoteObject
     implements RmiIterationBuffer<E, X>
 {

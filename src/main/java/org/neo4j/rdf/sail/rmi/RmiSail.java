@@ -4,8 +4,13 @@ import java.io.File;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
+import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
+/**
+ * Basically an RMI version of the {@link Sail} interface but with a
+ * change listener callback which is more optimized for use with RMI.
+ */
 interface RmiSail extends Remote
 {
     RmiSailConnection connect( RmiSailConnectionListenerCallback listener )

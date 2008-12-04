@@ -22,9 +22,15 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
+/**
+ * An implementation of {@link NeoRdfSailConnection} which delegates down
+ * to an {@link SailConnection} retreived from another {@link Sail} over RMI.
+ */
 class LocalSailConnection implements NeoRdfSailConnection
 {
     private final RmiSailConnection connection;
@@ -122,8 +128,8 @@ class LocalSailConnection implements NeoRdfSailConnection
         }
     }
     
-    public CloseableIteration<? extends BindingSet, QueryEvaluationException> evaluate(
-        TupleExpr tupleExpr, Dataset dataset, BindingSet bindings,
+    public CloseableIteration<? extends BindingSet, QueryEvaluationException>
+        evaluate( TupleExpr tupleExpr, Dataset dataset, BindingSet bindings,
         boolean includeInferred ) throws SailException
     {
         // NOTE: due to problems with serialization of the arguments for this

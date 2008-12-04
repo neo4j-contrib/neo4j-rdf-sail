@@ -8,10 +8,12 @@ import java.net.URI;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 
+import org.neo4j.rdf.sail.NeoRdfSailConnection;
 import org.openrdf.model.Statement;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailChangedEvent;
@@ -20,6 +22,10 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
+/**
+ * Here you can register {@link Sail} instances so that other JVM instances
+ * can connect to them via RMI using {@link RmiSailClient}.
+ */
 public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 {
     interface RmiSailConnectionFactory
@@ -97,18 +103,63 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         };
     }
     
+    /**
+     * Registers {@code sail} at the URI given by {@code resourceUri}.
+     * The URI must have the "rmi" protocol. The registry for the supplied port
+     * (the port in the URI) must be created before calling this method.
+     * F.ex. with {@link LocateRegistry#createRegistry(int)}.
+     * 
+     * @param sail the {@link Sail} to register at the URI.
+     * @param resourceUri the URI to register the sail at.
+     * @throws MalformedURLException if the URI is malformed.
+     * @throws RemoteException if an RMI problem occurs.
+     * @throws AlreadyBoundException if the given URI is already bound.
+     */
     public static void register( Sail sail, URI resourceUri )
         throws MalformedURLException, RemoteException, AlreadyBoundException
     {
         Naming.rebind( resourceUri.toString(), new RmiSailServer( sail ) );
     }
     
+    /**
+     * Registers {@code sail} at the URI given by {@code resourceUri}.
+     * The URI must have the "rmi" protocol. The registry for the supplied port
+     * (the port in the URI) must be created before calling this method.
+     * F.ex. with {@link LocateRegistry#createRegistry(int)}.
+     * 
+     * @param sail the {@link Sail} to register at the URI.
+     * @param resourceUri the URI to register the sail at.
+     * @param port the port where the method invocation communication will
+     * occur. see {@link UnicastRemoteObject} for more details.
+     * @throws MalformedURLException if the URI is malformed.
+     * @throws RemoteException if an RMI problem occurs.
+     * @throws AlreadyBoundException if the given URI is already bound.
+     */
     public static void register( Sail sail, URI resourceUri, int port )
         throws MalformedURLException, RemoteException, AlreadyBoundException
     {
-        Naming.rebind( resourceUri.toString(), new RmiSailServer( sail, port ) );
+        Naming.rebind( resourceUri.toString(),
+            new RmiSailServer( sail, port ) );
     }
     
+    /**
+     * Registers {@code sail} at the URI given by {@code resourceUri}.
+     * The URI must have the "rmi" protocol. The registry for the supplied port
+     * (the port in the URI) must be created before calling this method.
+     * F.ex. with {@link LocateRegistry#createRegistry(int)}.
+     * 
+     * @param sail the {@link Sail} to register at the URI.
+     * @param resourceUri the URI to register the sail at.
+     * @param port the port where the method invocation communication will
+     * occur. see {@link UnicastRemoteObject} for more details.
+     * @param csf the {@link RMIClientSocketFactory} to use.
+     * See {@link UnicastRemoteObject} for more details.
+     * @param ssf the {@link RMIServerSocketFactory} to use.
+     * See {@link UnicastRemoteObject} for more details.
+     * @throws MalformedURLException if the URI is malformed.
+     * @throws RemoteException if an RMI problem occurs.
+     * @throws AlreadyBoundException if the given URI is already bound.
+     */
     public static void register( Sail sail, URI resourceUri, int port,
         RMIClientSocketFactory csf, RMIServerSocketFactory ssf )
         throws MalformedURLException, RemoteException, AlreadyBoundException
@@ -117,7 +168,14 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
             csf, ssf ) );
     }
     
-    // Implementation
+    /**
+     * Used by the client to get a connection to the sail.
+     * 
+     * @param callback acts as {@link SailConnectionListener} over RMI.
+     * @throws RemoteException if an RMI problem occurs.
+     * @throws SailException if a connection couldn't be retrieved.
+     * @return an RMI version of a {@link NeoRdfSailConnection}.
+     */
     public RmiSailConnection connect(
         final RmiSailConnectionListenerCallback callback )
         throws RemoteException, SailException
@@ -152,26 +210,45 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         return factory.connect( connection );
     }
     
+    /**
+     * @return the underlying sail's {@link Sail#getDataDir()}.
+     */
     public File getDataDir()
     {
         return sail.getDataDir();
     }
     
+    /**
+     * Calls the underlying sail's {@link Sail#initialize()}.
+     */
     public void initialize() throws SailException
     {
         sail.initialize();
     }
     
+    /**
+     * @return the underlying sail's {@link Sail#isWritable()}.
+     */
     public boolean isWritable() throws SailException
     {
         return sail.isWritable();
     }
     
+    /**
+     * Calls the underlying sail's {@link Sail#setDataDir(File)}.
+     * @param file the data directory.
+     */
     public void setDataDir( File file )
     {
         sail.setDataDir( file );
     }
     
+    /**
+     * Calls the underlying sail's
+     * {@link Sail#addSailChangedListener(SailChangedListener)}. TODO.
+     * 
+     * @param callback the listener which receives "change" events.
+     */
     public void addCallback( final RmiSailChangedListenerCallback callback )
     {
         sail.addSailChangedListener( new SailChangedListener()
