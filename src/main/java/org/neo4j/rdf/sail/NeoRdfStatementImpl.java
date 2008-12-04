@@ -52,4 +52,10 @@ public class NeoRdfStatementImpl implements NeoRdfStatement, Serializable
     {
         return new HashMap<String, Literal>( this.metadata );
     }
+    
+    @Override
+    public String toString()
+    {
+        return this.statement.toString();
+    }
 }
