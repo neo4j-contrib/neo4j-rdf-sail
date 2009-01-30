@@ -168,6 +168,15 @@ class RmiSailConnectionImpl extends UnicastRemoteObject
         return factory.buffer( neoRdfSailCollection.evaluate( query ) );
     }
     
+    public RmiIterationBuffer<? extends FulltextQueryResult, SailException>
+        evaluateWithSnippets( String query, int snippetCountLimit )
+        throws SailException, RemoteException
+    {
+        NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
+        return factory.buffer( neoRdfSailCollection.evaluateWithSnippets(
+            query, snippetCountLimit ) );
+    }
+    
     public void setStatementMetadata( Statement statement,
         Map<String, Literal> metadata ) throws SailException, RemoteException
     {

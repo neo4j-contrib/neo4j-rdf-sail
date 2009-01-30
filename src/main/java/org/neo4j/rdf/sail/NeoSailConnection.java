@@ -26,6 +26,7 @@ import org.neo4j.rdf.model.CompleteStatement;
 import org.neo4j.rdf.model.StatementMetadata;
 import org.neo4j.rdf.model.WildcardStatement;
 import org.neo4j.rdf.sail.utils.ContextHandling;
+import org.neo4j.rdf.sail.utils.MutatingLogger;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
@@ -60,6 +61,9 @@ public class NeoSailConnection implements NeoRdfSailConnection
     // number of times to retry work in a transaction if deadlock detected
     private static final int NUMBER_OF_RETRIES = 5;
     
+    private static final AtomicInteger connectionIdentifier = 
+        new AtomicInteger( 0 );
+    
     private final NeoService neo;
     private final TransactionManager tm;
     private final RdfStore store;
@@ -73,7 +77,9 @@ public class NeoSailConnection implements NeoRdfSailConnection
     private final Sail sail;
     private final AtomicInteger totalAddCount = new AtomicInteger();
 
-    private final List<Command> commands = new ArrayList<Command>(); 
+    private final List<Command> commands = new ArrayList<Command>();
+    
+    private final int identifier;
     
     private enum NeoSailRelTypes implements RelationshipType
     {
@@ -98,6 +104,22 @@ public class NeoSailConnection implements NeoRdfSailConnection
         this.sailChangedListeners = sailChangedListeners;
         this.tm = (( EmbeddedNeo ) neo).getConfig().getTxModule().getTxManager();
         setupTransaction();
+        this.identifier = connectionIdentifier.incrementAndGet();
+        log( "connection created" );
+    }
+    
+    private void log( String msg )
+    {
+        if ( transaction != null )
+        {
+            MutatingLogger.getLogger().info( "NeoSailConnection[" + identifier +
+                "] running with tx[" + transaction.hashCode() + "]: " + msg );
+        }
+        else
+        {
+            MutatingLogger.getLogger().info( "NeoSailConnection[" + identifier +
+                "] running with tx[" + null + "]: " + msg );
+        }
     }
 
     private void setupTransaction() 
@@ -190,6 +212,11 @@ public class NeoSailConnection implements NeoRdfSailConnection
     public synchronized void close() throws SailException
     {
         open = false;
+        if ( commands.size() != 0 )
+        {
+            log( "close(): there are " + commands.size() + 
+                " non commited operations that will be rolled back on close" );
+        }
         commands.clear();
         Transaction otherTx = suspendOtherAndResumeThis();
         try
@@ -203,6 +230,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
+            log( "connection closed" );
             transaction = null;
             if ( otherTx != null )
             {
@@ -230,13 +258,30 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
     }
     
-    public synchronized CloseableIteration<FulltextQueryResult, SailException> evaluate(
-        String query )
+    public synchronized CloseableIteration<FulltextQueryResult, SailException>
+        evaluate( String query )
     {
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
-            Iterable<QueryResult> queryResult = this.store.searchFulltext( query );
+            Iterable<QueryResult> queryResult =
+                this.store.searchFulltext( query );
+            return new QueryResultIteration( queryResult.iterator(), this );
+        }
+        finally
+        {
+            suspendThisAndResumeOther( otherTx );
+        }
+    }
+    
+    public synchronized CloseableIteration<FulltextQueryResult, SailException>
+        evaluateWithSnippets( String query, int snippetCountLimit )
+    {
+        Transaction otherTx = suspendOtherAndResumeThis();
+        try
+        {
+            Iterable<QueryResult> queryResult = this.store.
+                searchFulltextWithSnippets( query, snippetCountLimit );
             return new QueryResultIteration( queryResult.iterator(), this );
         }
         finally
@@ -247,6 +292,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     
     public synchronized void reindexFulltextIndex()
     {
+        log( "reindexFulltextIndex() called" );
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
@@ -258,8 +304,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
                     "supply it in the RdfStore constructor" );
             }
             
-            fulltextIndex.clear();
             ( ( RdfStoreImpl ) store ).reindexFulltextIndex();
+            log( "reindexFulltextIndex() completed" );
         }
         finally
         {
@@ -372,6 +418,20 @@ public class NeoSailConnection implements NeoRdfSailConnection
             throw new SailException( e );
         }
     }
+    
+    private String spogString( final Resource subject, 
+        final URI predicate, final Value object, final Resource... contexts )
+    {
+        StringBuffer spog = new StringBuffer( "S[" );
+        spog.append(  subject ).append( "] P[" ).append( predicate ).append( 
+            "] O[" ).append( object ).append( "] G[" ); 
+        for ( Resource r : contexts )
+        {
+            spog.append( "[" + r + "]" );
+        }
+        spog.append( "]" );
+        return spog.toString();
+    }
 
     public synchronized void addStatement( final Resource subject, 
         final URI predicate, final Value object, final Resource... contexts ) 
@@ -380,6 +440,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
+            log( "addStatement: " + spogString( subject, predicate, object, 
+                contexts ) );
             innerAddStatement( subject, predicate, object, contexts );
         }
         finally
@@ -431,6 +493,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
+            log( "addStatement with metadata: " + spogString( subject, 
+                predicate, object, contexts ) );
             innerAddStatement( subject, predicate, object, contexts );
             CompleteStatement statement = getNeoRdfStatements( subject,
                 predicate, object, false, contexts ).next();
@@ -451,6 +515,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
+            log( "setStatementMetadata: " + statement );
             CompleteStatement neoStatement = getNeoRdfStatements(
                 statement.getSubject(), statement.getPredicate(),
                 statement.getObject(), false, statement.getContext() ).next();
@@ -534,6 +599,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
     	Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
+            log( "removeStatements: " + spogString( subject, predicate, object, 
+                contexts ) );
             commands.add( new Command( CommandType.REMOVE_STATEMENT, subject, 
                 predicate, object, contexts ) );
             internalRemoveStatements( subject, predicate, object, contexts );
@@ -674,6 +741,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
             commitFulltextIndex( txId, true );
             tm.begin();
             transaction = tm.getTransaction();
+            log( "commit() called on tx[" + txId + "] " + 
+                commands.size() + " operations committed" ); 
             clearBatchCommit();
         }
         catch ( Exception e )
@@ -699,6 +768,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
             commitFulltextIndex( txId, false );
             tm.begin();
             transaction = tm.getTransaction();
+            log( "rollback() called on tx[" + txId + "] " + 
+                commands.size() + " operations rolled back" ); 
             clearBatchCommit();
         }
         catch ( Exception e )
@@ -720,9 +791,12 @@ public class NeoSailConnection implements NeoRdfSailConnection
             {
                 int txId = getTxId();
                 tm.commit();
+                
                 commitFulltextIndex( txId, true );
                 tm.begin();
                 transaction = tm.getTransaction();
+                log( "<- new tx, old tx[" + txId + "] commited " + 
+                    commands.size() + " operations" ); 
                 clearBatchCommit();
             }
             catch ( Exception e )

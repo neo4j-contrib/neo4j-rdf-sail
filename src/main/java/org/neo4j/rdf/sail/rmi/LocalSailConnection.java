@@ -287,6 +287,21 @@ class LocalSailConnection implements NeoRdfSailConnection
         }
     }
     
+    public CloseableIteration<? extends FulltextQueryResult, SailException>
+        evaluateWithSnippets( String query, int snippetCountLimit )
+        throws SailException
+    {
+        try
+        {
+            return IterationUnbufferer.unbuffer(
+                connection.evaluateWithSnippets( query, snippetCountLimit ) );
+        }
+        catch ( RemoteException ex )
+        {
+            throw new SailException( RMI_CONNECTION_FAILED, ex );
+        }
+    }
+    
     public void setStatementMetadata( Statement statement,
         Map<String, Literal> metadata ) throws SailException
     {
