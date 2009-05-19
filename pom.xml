@@ -1,151 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project>
-    <parent>
-        <groupId>org.neo4j</groupId>
-        <artifactId>parent-pom</artifactId>
-        <version>4</version>
-        <relativePath>../../pom.xml</relativePath>
-    </parent>
-
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
     <groupId>org.neo4j</groupId>
-    <artifactId>neo-rdf-sail</artifactId>
-    <version>0.3-SNAPSHOT</version>
-    <name>Neo RDF SAIL</name>
-    <description>A Neo RDF Sesame Storage and Inference Layer</description>
-    <url>http://components.neo4j.org/${project.artifactId}/</url>
-    
-    <scm>
-	    <connection>
-		    scm:svn:https://svn.neo4j.org/components/${project.artifactId}/trunk/
-	    </connection>
-	    <url>https://trac.neo4j.org/browser/components/${project.artifactId}
-	    </url>
-    </scm>
-    
-    <issueManagement>
-	    <system>Trac</system>
-	    <url>https://trac.neo4j.org/query?status=assigned&amp;status=new&amp;status=reopened&amp;component=${project.artifactId}</url>
-    </issueManagement>
-    
-    <licenses>
-	    <license>
-		    <name>GNU Affero General Public License, Version 3</name>
-		    <url>https://svn.neo4j.org/components/${project.artifactId}/trunk/LICENSE.txt
-		    </url>
-	    </license>
-    </licenses>
-    
-    <developers>
-	    <developer>
-		    <id>emil</id>
-		    <name>Emil Eifrem</name>
-		    <email>emil [at] neotechnology.com</email>
-		    <timezone>+1</timezone>
-		    <roles>
-			    <role>Developer</role>
-		    </roles>
-	    </developer>
-	    <developer>
-		    <id>mattias</id>
-		    <name>Mattias Persson</name>
-		    <email>mattias [at] neotechnology.com</email>
-		    <timezone>+1</timezone>
-		    <roles>
-			    <role>Developer</role>
-		    </roles>
-	    </developer>
-	    <developer>
-		    <id>johans</id>
-		    <name>Johan Svensson</name>
-		    <email>johan [at] neotechnology.com</email>
-		    <timezone>+1</timezone>
-		    <roles>
-			    <role>Developer</role>
-		    </roles>
-	    </developer>
-    </developers>
-    
-    <build>
-	    <plugins>
-	    	<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-	    		<artifactId>maven-surefire-plugin</artifactId>
-	    		<configuration>
-	    			<argLine>-Xmx1024M</argLine>
-	    		</configuration>
-	    	</plugin>
-	    </plugins>
-	</build>
+    <artifactId>parent-pom</artifactId>
+    <version>4</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
 
-    <repositories>
-        <repository>
-            <id>aduna-repo</id>
-            <name>Aduna repository</name>
-            <url>http://repo.aduna-software.org/maven2/releases</url>
-        </repository>
-    </repositories>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.neo4j</groupId>
+  <artifactId>neo-rdf-sail</artifactId>
+  <version>0.3-SNAPSHOT</version>
+  <name>Neo RDF SAIL</name>
+  <description>A Neo RDF Sesame Storage and Inference Layer</description>
+  <url>http://components.neo4j.org/${project.artifactId}/</url>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo</artifactId>
-            <version>1.0-b8-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.neo4j</groupId>
-            <artifactId>neo-rdf</artifactId>
-            <version>0.4-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-model</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-sail-api</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryalgebra-evaluation</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.5.2</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-        </dependency>
-        <!-- test dependencies -->
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-trig</artifactId>
-            <version>2.1.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-repository-sail</artifactId>
-            <version>2.1.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryparser-sparql</artifactId>
-            <version>2.1.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.1</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+  <scm>
+    <connection>
+      scm:svn:https://svn.neo4j.org/components/${project.artifactId}/trunk/
+        </connection>
+    <url>https://trac.neo4j.org/browser/components/${project.artifactId}
+        </url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>GNU Affero General Public License, Version 3</name>
+      <url>https://svn.neo4j.org/components/${project.artifactId}/trunk/LICENSE.txt
+            </url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>emil</id>
+      <name>Emil Eifrem</name>
+      <email>emil [at] neotechnology.com</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>mattias</id>
+      <name>Mattias Persson</name>
+      <email>mattias [at] neotechnology.com</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>johans</id>
+      <name>Johan Svensson</name>
+      <email>johan [at] neotechnology.com</email>
+      <timezone>+1</timezone>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-Xmx1024M</argLine>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>aduna-repo</id>
+      <name>Aduna repository</name>
+      <url>http://repo.aduna-software.org/maven2/releases</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo</artifactId>
+      <version>1.0-b8-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo-rdf</artifactId>
+      <version>0.4-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-model</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-sail-api</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-queryalgebra-evaluation</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-rio-trig</artifactId>
+      <version>2.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-repository-sail</artifactId>
+      <version>2.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openrdf.sesame</groupId>
+      <artifactId>sesame-queryparser-sparql</artifactId>
+      <version>2.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
