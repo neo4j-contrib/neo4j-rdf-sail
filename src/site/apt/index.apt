@@ -1,3 +1,27 @@
 Neo4j RDF SAIL
 
-    A neo4j RDF Sesame Storage and Inference Layer.
+    A neo4j RDF Sesame Storage and Inference Layer. Wraps an
+    <<org.neo4j.rdf.store.RdfStore>> so that it looks like a
+    <<org.openrdf.sail.Sail>>. To start up neo4j rdf store wrapped in a sail
+    you do something like this:
+     
+---
+	import org.neo4j.api.core.NeoService;
+	import org.neo4j.api.core.EmbeddedNeo;
+	import org.neo4j.util.index.IndexService;
+	import org.neo4j.util.index.LuceneIndexService;
+	import org.neo4j.rdf.store.RdfStore;
+	import org.neo4j.rdf.store.VerboseQuadStore;
+	import org.neo4j.rdf.sail.NeoSail;
+	import org.openrdf.sail.Sail;
+	
+	...
+	
+	NeoService neo = new EmbeddedNeo( "path/to/mystore" );
+	IndexService indexService = new LuceneIndexService( neo );
+	RdfStore rdfStore = new VerboseQuadStore( neo, indexService );
+	Sail sail = new NeoSail( neo, rdfStore );
+---
+
+	It'd also be nice with a shut down hook of some kind which shuts down
+	the components in the correct order, namely: sail, indexService, neo
