@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
+import java.rmi.server.Unreferenced;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.List;
  * @param <X> the type of exception thrown if something goes wrong.
  */
 class IterationBufferer<E, X extends Exception> extends UnicastRemoteObject
-    implements RmiIterationBuffer<E, X>
+    implements RmiIterationBuffer<E, X>, Unreferenced
 {
     private static final int CHUNK_SIZE = 10;
     private final CloseableIteration<E, X> iter;
@@ -49,6 +50,20 @@ class IterationBufferer<E, X extends Exception> extends UnicastRemoteObject
     {
         open = false;
         iter.close();
+    }
+    
+    public void unreferenced() {
+        if (open)
+        {
+            try
+            {
+                close();
+            }
+            catch (Exception ex)
+            {
+                // Nothing we can do about it
+            }
+        }
     }
     
     public Collection<E> getChunk() throws X, RemoteException

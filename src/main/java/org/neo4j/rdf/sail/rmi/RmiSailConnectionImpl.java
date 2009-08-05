@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
+import java.rmi.server.Unreferenced;
 import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
@@ -23,10 +24,11 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 class RmiSailConnectionImpl extends UnicastRemoteObject
-    implements RmiSailConnection
+    implements RmiSailConnection, Unreferenced
 {
     private final SailConnection connection;
     private final RmiSailConnectionFactory factory;
+    private boolean connected = true;
     
     RmiSailConnectionImpl( SailConnection connection,
         RmiSailConnectionFactory factory ) throws RemoteException
@@ -51,6 +53,31 @@ class RmiSailConnectionImpl extends UnicastRemoteObject
         super( port, csf, ssf );
         this.connection = connection;
         this.factory = factory;
+    }
+
+    void callbackConnectionLost()
+    {
+        // Assume that the connection is lost in the incoming direction as well
+        unreferenced();
+    }
+    
+    public void unreferenced()
+    {
+        if ( connected )
+        {
+            try
+            {
+                if ( connection.isOpen() )
+                {
+                    connection.close();
+                }
+            }
+            catch ( SailException se )
+            {
+                // Nothing we can do about it
+            }
+            connected = false;
+        }
     }
     
     // Implementation
@@ -80,6 +107,7 @@ class RmiSailConnectionImpl extends UnicastRemoteObject
     public void close() throws SailException
     {
         connection.close();
+        connected = false;
     }
     
     public void commit() throws SailException

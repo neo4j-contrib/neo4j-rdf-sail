@@ -30,7 +30,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
 {
     interface RmiSailConnectionFactory
     {
-        RmiSailConnection connect( SailConnection connection )
+        RmiSailConnectionImpl connect( SailConnection connection )
             throws RemoteException;
         
         <E, X extends Exception> IterationBufferer<E, X> buffer(
@@ -40,13 +40,13 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
     private final Sail sail;
     private final RmiSailConnectionFactory factory;
     
-    RmiSailServer( Sail sail ) throws RemoteException
+    private RmiSailServer( Sail sail ) throws RemoteException
     {
         super();
         this.sail = sail;
         this.factory = new RmiSailConnectionFactory()
         {
-            public RmiSailConnection connect( SailConnection connection )
+            public RmiSailConnectionImpl connect( SailConnection connection )
                 throws RemoteException
             {
                 return new RmiSailConnectionImpl( connection, this );
@@ -66,7 +66,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         this.sail = sail;
         this.factory = new RmiSailConnectionFactory()
         {
-            public RmiSailConnection connect( SailConnection connection )
+            public RmiSailConnectionImpl connect( SailConnection connection )
                 throws RemoteException
             {
                 return new RmiSailConnectionImpl( connection, this, port );
@@ -88,7 +88,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         this.sail = sail;
         this.factory = new RmiSailConnectionFactory()
         {
-            public RmiSailConnection connect( SailConnection connection )
+            public RmiSailConnectionImpl connect( SailConnection connection )
                 throws RemoteException
             {
                 return new RmiSailConnectionImpl( connection, this, port, csf,
@@ -181,6 +181,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         throws RemoteException, SailException
     {
         final SailConnection connection = sail.getConnection();
+        final RmiSailConnectionImpl remote = factory.connect(connection);
         connection.addConnectionListener( new SailConnectionListener()
         {
             public void statementAdded( Statement statement )
@@ -192,6 +193,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
                 catch ( RemoteException e )
                 {
                     connection.removeConnectionListener( this );
+                    remote.callbackConnectionLost();
                 }
             }
             
@@ -204,10 +206,11 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
                 catch ( RemoteException e )
                 {
                     connection.removeConnectionListener( this );
+                    remote.callbackConnectionLost();
                 }
             }
         } );
-        return factory.connect( connection );
+        return remote;
     }
     
     /**
