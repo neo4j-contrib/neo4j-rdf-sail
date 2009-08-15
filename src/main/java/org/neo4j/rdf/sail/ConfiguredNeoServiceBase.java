@@ -77,11 +77,14 @@ public class ConfiguredNeoServiceBase implements NeoService
         return neo().getReferenceNode();
     }
 
-    public Iterable<Node> getAllNodes() {
-        return neo.getAllNodes();
+    public Iterable<RelationshipType> getRelationshipTypes()
+    {
+        return neo().getRelationshipTypes();
+    }
+    
+    public Iterable<Node> getAllNodes()
+    {
+        return neo().getAllNodes();
     }
 
-    public Iterable<RelationshipType> getRelationshipTypes() {
-        return neo.getRelationshipTypes();
-    }    
 }

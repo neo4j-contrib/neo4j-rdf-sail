@@ -31,7 +31,7 @@ import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.rdf.util.TemporaryLogger;
-import org.neo4j.util.CombiningIterable;
+import org.neo4j.commons.iterator.CombiningIterable;
 import org.neo4j.util.NeoUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -103,9 +103,14 @@ public class NeoSailConnection implements NeoRdfSailConnection
         this.batchSize = batchSize;
         this.sailChangedListeners = sailChangedListeners;
         this.tm = (( EmbeddedNeo ) neo).getConfig().getTxModule().getTxManager();
-        setupTransaction();
+        // setupTransaction();
         this.identifier = connectionIdentifier.incrementAndGet();
         log( "connection created" );
+    }
+    
+    int getIdentifier()
+    {
+        return this.identifier;
     }
     
     private void log( String msg )
@@ -122,7 +127,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
     }
 
-    private void setupTransaction() 
+/*    private void setupTransaction() 
     {
         try
         {
@@ -144,6 +149,24 @@ public class NeoSailConnection implements NeoRdfSailConnection
             e.printStackTrace();
             throw new RuntimeException( e );
         }
+    }*/
+    
+    private void beginTransaction()
+    {
+        try
+        {
+            tm.begin();
+            transaction = tm.getTransaction();
+            if ( transaction == null )
+            {
+                System.out.println( "GAHHHHHHH" );
+            }
+        }
+        catch ( Exception e )
+        {
+            e.printStackTrace();
+            throw new RuntimeException( e );
+        }
     }
     
     Transaction suspendOtherAndResumeThis()
@@ -151,7 +174,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         try
         {
             Transaction otherTx = tm.getTransaction();
-            if ( otherTx == transaction )
+            if ( otherTx != null && otherTx == transaction )
             {
                 return null;
             }
@@ -161,7 +184,14 @@ public class NeoSailConnection implements NeoRdfSailConnection
                 {
                     tm.suspend();
                 }
-                tm.resume( transaction );
+                if ( transaction == null )
+                {
+                    beginTransaction();
+                }
+                else
+                {
+                    tm.resume( transaction );
+                }
                 return otherTx;
             }
         }
@@ -211,6 +241,10 @@ public class NeoSailConnection implements NeoRdfSailConnection
 
     public synchronized void close() throws SailException
     {
+        if ( !open )
+        {
+            return;
+        }
         open = false;
         if ( commands.size() != 0 )
         {
@@ -231,6 +265,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         finally
         {
             log( "connection closed" );
+            ( ( NeoSail ) this.sail ).connectionEnded( this.identifier, this );
             transaction = null;
             if ( otherTx != null )
             {
@@ -723,7 +758,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     
     private int getTxId() throws Exception
     {
-        return tm.getTransaction().hashCode();
+        return transaction.hashCode();
     }
     
     public synchronized void commit() throws SailException
@@ -738,9 +773,10 @@ public class NeoSailConnection implements NeoRdfSailConnection
         {
             int txId = getTxId();
             tm.commit();
+            transaction = null;
             commitFulltextIndex( txId, true );
-            tm.begin();
-            transaction = tm.getTransaction();
+//            tm.begin();
+//            transaction = tm.getTransaction();
             log( "commit() called on tx[" + txId + "] " + 
                 commands.size() + " operations committed" ); 
             clearBatchCommit();
@@ -752,7 +788,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther( otherTx );
+            resumeOther( otherTx );
         }
     }
 
@@ -766,8 +802,9 @@ public class NeoSailConnection implements NeoRdfSailConnection
             int txId = getTxId();
             tm.rollback();
             commitFulltextIndex( txId, false );
-            tm.begin();
-            transaction = tm.getTransaction();
+            transaction = null;
+//            tm.begin();
+//            transaction = tm.getTransaction();
             log( "rollback() called on tx[" + txId + "] " + 
                 commands.size() + " operations rolled back" ); 
             clearBatchCommit();
@@ -779,7 +816,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         }
         finally
         {
-            suspendThisAndResumeOther( otherTx );
+            resumeOther( otherTx );
         }
     }
 

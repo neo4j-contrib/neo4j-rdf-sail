@@ -6,8 +6,8 @@ import java.util.Iterator;
 
 import javax.transaction.Transaction;
 
+import org.neo4j.commons.iterator.IteratorWrapper;
 import org.neo4j.rdf.fulltext.QueryResult;
-import org.neo4j.util.IteratorWrapper;
 import org.openrdf.sail.SailException;
 
 public class QueryResultIteration
