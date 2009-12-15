@@ -13,7 +13,7 @@ import org.neo4j.util.EntireGraphDeletor;
 
 public class NeoTestUtils
 {
-	private static final File BASE_DIR = new File( "var/test" );
+	private static final File BASE_DIR = new File( "target/var" );
 	
 	private NeoTestUtils()
 	{
