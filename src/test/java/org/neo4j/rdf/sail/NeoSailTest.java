@@ -1,16 +1,16 @@
 package org.neo4j.rdf.sail;
 
 import org.junit.Test;
-import org.neo4j.api.core.NeoService;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
-import org.neo4j.util.index.IndexService;
+import org.neo4j.index.IndexService;
 import org.openrdf.sail.Sail;
 
 public class NeoSailTest extends BaseSailTest
 {
 	private RdfStore store = null;
-	private NeoService neo = null;
+	private GraphDatabaseService neo = null;
     private IndexService indexService = null;
 
 	public static void main( String[] args ) throws Exception

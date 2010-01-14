@@ -4,26 +4,26 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
-import org.neo4j.api.core.EmbeddedNeo;
-import org.neo4j.api.core.NeoService;
-import org.neo4j.api.core.Node;
-import org.neo4j.api.core.Relationship;
-import org.neo4j.api.core.RelationshipType;
-import org.neo4j.api.core.Transaction;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
 
-public class ConfiguredNeoServiceBase implements NeoService
+public class ConfiguredNeoServiceBase implements GraphDatabaseService
 {
-    private final NeoService neo;
+    private final GraphDatabaseService neo;
 
     protected ConfiguredNeoServiceBase( String storeDir )
     {
         if ( getConfiguration().isEmpty() )
         {
-            this.neo = new EmbeddedNeo( storeDir );
+            this.neo = new EmbeddedGraphDatabase( storeDir );
         }
         else
         {
-            this.neo = new EmbeddedNeo( storeDir, getConfiguration() );
+            this.neo = new EmbeddedGraphDatabase( storeDir, getConfiguration() );
         }
     }
         
@@ -32,7 +32,7 @@ public class ConfiguredNeoServiceBase implements NeoService
         return Collections.emptyMap();
     }
     
-    protected NeoService neo()
+    protected GraphDatabaseService neo()
     {
         return this.neo;
     }

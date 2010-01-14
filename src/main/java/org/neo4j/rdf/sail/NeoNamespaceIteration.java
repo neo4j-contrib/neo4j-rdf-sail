@@ -4,9 +4,9 @@ import info.aduna.iteration.CloseableIteration;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.impl.NamespaceImpl;
 import org.openrdf.sail.SailException;
-import org.neo4j.api.core.Node;
-import org.neo4j.api.core.Transaction;
-import org.neo4j.api.core.NeoService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.GraphDatabaseService;
 
 import java.util.Iterator;
 import java.util.Collection;
@@ -20,7 +20,7 @@ import java.util.LinkedList;
 public class NeoNamespaceIteration implements CloseableIteration<Namespace, SailException> {
     private final Iterator<Namespace> iterator;
 
-    public NeoNamespaceIteration(final Node node, final NeoService neo) {
+    public NeoNamespaceIteration(final Node node, final GraphDatabaseService neo) {
 
         Transaction tx = neo.beginTx();
         try {

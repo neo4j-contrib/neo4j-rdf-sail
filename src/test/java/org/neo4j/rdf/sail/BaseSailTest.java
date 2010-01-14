@@ -20,11 +20,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.api.core.NeoService;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
-import org.neo4j.util.index.IndexService;
+import org.neo4j.index.IndexService;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -86,7 +86,7 @@ public abstract class BaseSailTest
         }
 	}
 
-	protected final RdfStore createStore( NeoService neo, 
+	protected final RdfStore createStore( GraphDatabaseService neo, 
         IndexService indexService )
 	{
 		fulltextIndex = NeoTestUtils.createFulltextIndex( neo );

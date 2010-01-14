@@ -15,11 +15,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
-import org.neo4j.api.core.EmbeddedNeo;
-import org.neo4j.api.core.NeoService;
-import org.neo4j.api.core.Node;
-import org.neo4j.api.core.RelationshipType;
-import org.neo4j.impl.transaction.DeadlockDetectedException;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.kernel.impl.transaction.DeadlockDetectedException;
 import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.fulltext.QueryResult;
 import org.neo4j.rdf.model.CompleteStatement;
@@ -64,7 +64,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     private static final AtomicInteger connectionIdentifier = 
         new AtomicInteger( 0 );
     
-    private final NeoService neo;
+    private final GraphDatabaseService neo;
     private final TransactionManager tm;
     private final RdfStore store;
     private final ValueFactory valueFactory;
@@ -86,13 +86,13 @@ public class NeoSailConnection implements NeoRdfSailConnection
         REF_TO_NAMESPACE
     }
 
-    NeoSailConnection( final NeoService neo, final RdfStore store, final Sail sail,
+    NeoSailConnection( final GraphDatabaseService neo, final RdfStore store, final Sail sail,
         final ValueFactory valueFactory, final Collection<SailChangedListener> sailChangedListeners )
     {
         this( neo, store, sail, valueFactory, DEFAULT_BATCHSIZE, sailChangedListeners );
     }
 
-    NeoSailConnection( final NeoService neo, final RdfStore store, final Sail sail,
+    NeoSailConnection( final GraphDatabaseService neo, final RdfStore store, final Sail sail,
         final ValueFactory valueFactory, int batchSize, final Collection<SailChangedListener> sailChangedListeners )
     {
         this.neo = neo;
@@ -102,7 +102,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         this.open = true;
         this.batchSize = batchSize;
         this.sailChangedListeners = sailChangedListeners;
-        this.tm = (( EmbeddedNeo ) neo).getConfig().getTxModule().getTxManager();
+        this.tm = (( EmbeddedGraphDatabase ) neo).getConfig().getTxModule().getTxManager();
         // setupTransaction();
         this.identifier = connectionIdentifier.incrementAndGet();
         log( "connection created" );

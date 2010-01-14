@@ -5,14 +5,14 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 
 import org.junit.Test;
-import org.neo4j.api.core.NeoService;
 import org.neo4j.rdf.sail.BaseSailTest;
 import org.neo4j.rdf.sail.NeoSail;
 import org.neo4j.rdf.sail.NeoTestUtils;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
-import org.neo4j.util.index.IndexService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.index.IndexService;
 import org.openrdf.sail.Sail;
 
 public class RmiSailTest extends BaseSailTest
@@ -21,7 +21,7 @@ public class RmiSailTest extends BaseSailTest
 	private static final String BASE_URI = "rmi://localhost:" + PORT + "/";
 	private static final String RESOURCE_URI = BASE_URI + "NeoSail";
 
-    private NeoService neo = null;
+    private GraphDatabaseService neo = null;
     private IndexService idx = null;
     
     private RdfStore store = null;
@@ -73,7 +73,7 @@ public class RmiSailTest extends BaseSailTest
 	{
 		/* RESTORE ME
 		LocateRegistry.createRegistry( PORT );
-		final NeoService neo = NeoTestUtils.createNeo();
+		final GraphDatabaseService neo = NeoTestUtils.createNeo();
         final IndexService idx = new CachingLuceneIndexService( neo );
         Runtime.getRuntime().addShutdownHook( new Thread()
         {

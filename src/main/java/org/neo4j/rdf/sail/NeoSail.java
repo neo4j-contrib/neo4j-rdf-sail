@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.neo4j.api.core.NeoService;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.rdf.sail.utils.MutatingLogger;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.util.TemporaryLogger;
@@ -28,7 +28,7 @@ public class NeoSail implements Sail {
     // TODO: is there such thing as a read-only NeoSail?
     private static final boolean IS_WRITABLE = true;
 
-    private final NeoService neo;
+    private final GraphDatabaseService neo;
     private final RdfStore store;
     private final ValueFactory valueFactory = new ValueFactoryImpl();
     private final Set<SailChangedListener> listeners = new HashSet<SailChangedListener>();
@@ -38,7 +38,7 @@ public class NeoSail implements Sail {
         Collections.synchronizedMap(
             new HashMap<Integer, NeoSailConnection>() );
     
-    public NeoSail(final NeoService neo, final RdfStore store) {
+    public NeoSail(final GraphDatabaseService neo, final RdfStore store) {
 //System.out.println("we're creating a NeoSail: " + neo + ", " + store);
         this.neo = neo;
         this.store = store;
