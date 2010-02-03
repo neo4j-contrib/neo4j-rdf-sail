@@ -8,6 +8,7 @@ Neo4j RDF SAIL
 ---
 	import org.neo4j.api.core.NeoService;
 	import org.neo4j.api.core.EmbeddedNeo;
+    import org.neo4j.graphdb.GraphDatabaseService;
 	import org.neo4j.util.index.IndexService;
 	import org.neo4j.util.index.LuceneIndexService;
 	import org.neo4j.rdf.store.RdfStore;
@@ -17,11 +18,13 @@ Neo4j RDF SAIL
 	
 	...
 	
-	NeoService neo = new EmbeddedNeo( "path/to/mystore" );
+	GraphDatabaseService neo = new EmbeddedGraphDatabase( "path/to/mystore" );
 	IndexService indexService = new LuceneIndexService( neo );
 	RdfStore rdfStore = new VerboseQuadStore( neo, indexService );
 	Sail sail = new NeoSail( neo, rdfStore );
 ---
+    Now, to import data from e.g. files, you can use existing tools like 
+    {{{http://www.openrdf.org/doc/rio/api/org/openrdf/rio/rdfxml/RdfXmlParser.html}The RIO RDF parser}}.
 
 	It'd also be nice with a shut down hook of some kind which shuts down
 	the components in the correct order, namely: sail, indexService, neo
