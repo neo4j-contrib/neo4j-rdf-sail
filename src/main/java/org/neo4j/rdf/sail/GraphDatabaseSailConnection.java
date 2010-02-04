@@ -22,7 +22,7 @@ import org.openrdf.sail.SailException;
  * other words beginning with comput) and science in them.
  * 
  */
-public interface NeoRdfSailConnection extends SailConnection
+public interface GraphDatabaseSailConnection extends SailConnection
 {
     CloseableIteration<? extends FulltextQueryResult, SailException>
         evaluate( String query ) throws SailException;

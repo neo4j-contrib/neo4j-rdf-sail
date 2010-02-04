@@ -14,10 +14,10 @@ public class QueryResultIteration
     extends IteratorWrapper<FulltextQueryResult, QueryResult>
     implements CloseableIteration<FulltextQueryResult, SailException>
 {
-    private NeoSailConnection connection;
+    private GraphDatabaseSailConnectionImpl connection;
     
     QueryResultIteration( Iterator<QueryResult> queryResult,
-        NeoSailConnection connection )
+        GraphDatabaseSailConnectionImpl connection )
     {
         super( queryResult );
         this.connection = connection;

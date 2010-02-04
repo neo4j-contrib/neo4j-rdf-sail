@@ -14,14 +14,14 @@ import javax.transaction.Transaction;
  * Date: Apr 25, 2008
  * Time: 7:10:31 PM
  */
-public class NeoStatementIteration implements CloseableIteration<Statement, SailException> {
+public class GraphDatabaseStatementIteration implements CloseableIteration<Statement, SailException> {
 
     private final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator;
-    private final NeoSailConnection connection;
+    private final GraphDatabaseSailConnectionImpl connection;
     private Statement nextStatement;
     
-    public NeoStatementIteration(final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator, 
-        final NeoSailConnection connection ) {
+    public GraphDatabaseStatementIteration(final Iterator<org.neo4j.rdf.model.CompleteStatement> iterator, 
+        final GraphDatabaseSailConnectionImpl connection ) {
         this.iterator = iterator;
         this.connection = connection;
     }
@@ -70,7 +70,7 @@ public class NeoStatementIteration implements CloseableIteration<Statement, Sail
         //System.out.println("retrieved a statement: " + statement);
                 return (null == statement)
                         // TODO: would be better here if iterator were an Iterator<CompleteStatement>
-                        ? null : NeoSesameMapper.createStatement((CompleteStatement) statement, true);
+                        ? null : GraphDatabaseSesameMapper.createStatement((CompleteStatement) statement, true);
     }
 
     public void remove() throws SailException {

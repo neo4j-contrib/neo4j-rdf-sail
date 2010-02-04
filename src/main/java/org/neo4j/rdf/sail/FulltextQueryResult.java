@@ -13,7 +13,7 @@ public class FulltextQueryResult implements Serializable
     
     public FulltextQueryResult( QueryResult wrappedResult )
     {
-        this.statement = NeoSesameMapper.createStatement(
+        this.statement = GraphDatabaseSesameMapper.createStatement(
             wrappedResult.getStatement(), true );
         this.score = wrappedResult.getScore();
         this.snippet = wrappedResult.getSnippet();

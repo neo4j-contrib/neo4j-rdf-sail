@@ -8,7 +8,7 @@ import java.rmi.server.Unreferenced;
 import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
-import org.neo4j.rdf.sail.NeoRdfSailConnection;
+import org.neo4j.rdf.sail.GraphDatabaseSailConnection;
 import org.neo4j.rdf.sail.rmi.RmiSailServer.RmiSailConnectionFactory;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -90,7 +90,7 @@ class RmiSailConnectionImpl extends UnicastRemoteObject
     public Statement addStatement( Map<String, Literal> metadata, Resource subj,
         URI pred, Value obj, Resource[] contexts ) throws SailException
     {
-        return getNeoRdfConnection().addStatement( metadata, subj, pred, obj,
+        return getSailConnection().addStatement( metadata, subj, pred, obj,
             contexts );
     }
     
@@ -179,41 +179,41 @@ class RmiSailConnectionImpl extends UnicastRemoteObject
             includeInferred, contexts ) );
     }
     
-    private NeoRdfSailConnection getNeoRdfConnection()
+    private GraphDatabaseSailConnection getSailConnection()
     {
-        if ( !( connection instanceof NeoRdfSailConnection ) )
+        if ( !( connection instanceof GraphDatabaseSailConnection ) )
         {
             throw new RuntimeException( "Only available for connections " +
-                "implementing " + NeoRdfSailConnection.class );
+                "implementing " + GraphDatabaseSailConnection.class );
         }
-        return ( NeoRdfSailConnection ) connection;
+        return ( GraphDatabaseSailConnection ) connection;
     }
     
     public RmiIterationBuffer<? extends FulltextQueryResult, SailException> evaluate(
         String query ) throws SailException, RemoteException
     {
-        NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
-        return factory.buffer( neoRdfSailCollection.evaluate( query ) );
+        GraphDatabaseSailConnection sailCollection = getSailConnection();
+        return factory.buffer( sailCollection.evaluate( query ) );
     }
     
     public RmiIterationBuffer<? extends FulltextQueryResult, SailException>
         evaluateWithSnippets( String query, int snippetCountLimit )
         throws SailException, RemoteException
     {
-        NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
-        return factory.buffer( neoRdfSailCollection.evaluateWithSnippets(
+        GraphDatabaseSailConnection sailCollection = getSailConnection();
+        return factory.buffer( sailCollection.evaluateWithSnippets(
             query, snippetCountLimit ) );
     }
     
     public void setStatementMetadata( Statement statement,
         Map<String, Literal> metadata ) throws SailException, RemoteException
     {
-        NeoRdfSailConnection neoRdfSailCollection = getNeoRdfConnection();
-        neoRdfSailCollection.setStatementMetadata( statement, metadata );
+        GraphDatabaseSailConnection sailCollection = getSailConnection();
+        sailCollection.setStatementMetadata( statement, metadata );
     }
     
     public void reindexFulltextIndex() throws SailException, RemoteException
     {
-        getNeoRdfConnection().reindexFulltextIndex();
+        getSailConnection().reindexFulltextIndex();
     }
 }

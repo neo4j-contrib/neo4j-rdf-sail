@@ -17,12 +17,12 @@ import java.util.LinkedList;
  * Date: Apr 25, 2008
  * Time: 7:10:31 PM
  */
-public class NeoNamespaceIteration implements CloseableIteration<Namespace, SailException> {
+public class GraphDatabaseNamespaceIteration implements CloseableIteration<Namespace, SailException> {
     private final Iterator<Namespace> iterator;
 
-    public NeoNamespaceIteration(final Node node, final GraphDatabaseService neo) {
+    public GraphDatabaseNamespaceIteration(final Node node, final GraphDatabaseService graphDb) {
 
-        Transaction tx = neo.beginTx();
+        Transaction tx = graphDb.beginTx();
         try {
             Collection<Namespace> namespaces = new LinkedList<Namespace>();
             Iterator<String> keys = node.getPropertyKeys().iterator();

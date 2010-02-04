@@ -15,7 +15,7 @@ import org.neo4j.rdf.sail.utils.ContextHandling;
  * Date: Apr 25, 2008
  * Time: 6:09:18 PM
  */
-public class SesameNeoMapper {
+public class SesameGraphDatabaseMapper {
     public static org.neo4j.rdf.model.Literal createLiteral(final Literal lit) {
         org.neo4j.rdf.model.Uri datatype = (null == lit.getDatatype())
                 ? null : createUri(lit.getDatatype());

@@ -11,19 +11,19 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 
-public class NeoRdfStatementImpl implements NeoRdfStatement, Serializable
+public class GraphDatabaseStatementImpl implements GraphDatabaseStatement, Serializable
 {
     private Statement statement;
     private Map<String, Literal> metadata;
     
-    public NeoRdfStatementImpl( Statement statement,
+    public GraphDatabaseStatementImpl( Statement statement,
         CompleteStatement neoStatement )
     {
         this.statement = statement;
         this.metadata = new HashMap<String, Literal>();
         for ( String key : neoStatement.getMetadata().getKeys() )
         {
-            this.metadata.put( key, NeoSesameMapper.createLiteral(
+            this.metadata.put( key, GraphDatabaseSesameMapper.createLiteral(
                 neoStatement.getMetadata().get( key ) ) );
         }
     }

@@ -18,19 +18,19 @@ import org.openrdf.sail.Sail;
 
 public class BatchInserter
 {
-	private GraphDatabaseService neo;
+	private GraphDatabaseService graphDb;
 	private RdfStore store;
 	
-	public BatchInserter( GraphDatabaseService neo, RdfStore store )
+	public BatchInserter( GraphDatabaseService graphDb, RdfStore store )
 	{
-		this.neo = neo;
+		this.graphDb = graphDb;
 		this.store = store;
 	}
 	
 	public void insert( File... files ) throws Exception
 	{
 		SimpleTimer timer = new SimpleTimer();
-		Sail sail = new NeoSail( neo, store );
+		Sail sail = new GraphDatabaseSail( graphDb, store );
 		try
 		{
 			sail.initialize();
@@ -52,17 +52,17 @@ public class BatchInserter
 	
 	public static void main( final String[] args ) throws Exception
 	{
-		final GraphDatabaseService neo = new EmbeddedGraphDatabase( "var/neo" );
-		final IndexService indexService = new CachingLuceneIndexService( neo );
-		VerboseQuadStore store = new VerboseQuadStore( neo, indexService );
+		final GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "var/neo4j" );
+		final IndexService indexService = new CachingLuceneIndexService( graphDb );
+		VerboseQuadStore store = new VerboseQuadStore( graphDb, indexService );
 		try
 		{
-			new BatchInserter( neo, store ).insert( listFiles( args ) );
+			new BatchInserter( graphDb, store ).insert( listFiles( args ) );
 		}
 		finally
 		{
 			indexService.shutdown();
-			neo.shutdown();
+			graphDb.shutdown();
 		}
 	}
 	

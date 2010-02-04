@@ -7,10 +7,10 @@ import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.index.IndexService;
 import org.openrdf.sail.Sail;
 
-public class NeoSailTest extends BaseSailTest
+public class GraphDatabaseSailTest extends BaseSailTest
 {
 	private RdfStore store = null;
-	private GraphDatabaseService neo = null;
+	private GraphDatabaseService graphDb = null;
     private IndexService indexService = null;
 
 	public static void main( String[] args ) throws Exception
@@ -26,9 +26,9 @@ public class NeoSailTest extends BaseSailTest
 	@Override
 	protected void before()
 	{
-		neo = NeoTestUtils.createNeo();
-        indexService = new CachingLuceneIndexService( neo );
-		this.store = createStore( neo, indexService );
+		graphDb = TestUtils.createGraphDb();
+        indexService = new CachingLuceneIndexService( graphDb );
+		this.store = createStore( graphDb, indexService );
 	}
 	
 	@Override
@@ -42,14 +42,14 @@ public class NeoSailTest extends BaseSailTest
 	protected void after()
 	{
         indexService.shutdown();
-        neo.shutdown();
+        graphDb.shutdown();
 		this.store = null;
 	}
 
 	@Override
 	protected Sail createSail() throws Exception
 	{
-		return new NeoSail( neo, store );
+		return new GraphDatabaseSail( graphDb, store );
 	}
 
 	@Override

@@ -6,8 +6,8 @@ import java.rmi.registry.LocateRegistry;
 
 import org.junit.Test;
 import org.neo4j.rdf.sail.BaseSailTest;
-import org.neo4j.rdf.sail.NeoSail;
-import org.neo4j.rdf.sail.NeoTestUtils;
+import org.neo4j.rdf.sail.GraphDatabaseSail;
+import org.neo4j.rdf.sail.TestUtils;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
@@ -21,11 +21,11 @@ public class RmiSailTest extends BaseSailTest
 	private static final String BASE_URI = "rmi://localhost:" + PORT + "/";
 	private static final String RESOURCE_URI = BASE_URI + "NeoSail";
 
-    private GraphDatabaseService neo = null;
+    private GraphDatabaseService graphDb = null;
     private IndexService idx = null;
     
     private RdfStore store = null;
-    private NeoSail neoSail = null;
+    private GraphDatabaseSail graphDbSail = null;
     
     static
     {
@@ -43,11 +43,11 @@ public class RmiSailTest extends BaseSailTest
     {
         try
         {
-            neo = NeoTestUtils.createNeo();
-            idx = new CachingLuceneIndexService( neo );
-            store = createStore( neo, idx );
-            neoSail = new NeoSail( neo, store );
-            RmiSailServer.register( neoSail, new java.net.URI(
+            graphDb = TestUtils.createGraphDb();
+            idx = new CachingLuceneIndexService( graphDb );
+            store = createStore( graphDb, idx );
+            graphDbSail = new GraphDatabaseSail( graphDb, store );
+            RmiSailServer.register( graphDbSail, new java.net.URI(
                 RESOURCE_URI ) );
         }
         catch ( Exception e )
@@ -61,7 +61,7 @@ public class RmiSailTest extends BaseSailTest
         try
         {
             idx.shutdown();
-            neo.shutdown();
+            graphDb.shutdown();
         }
         catch ( Exception e )
         {
@@ -116,7 +116,7 @@ public class RmiSailTest extends BaseSailTest
     {
 	    super.tearDownSail();
 		( ( RdfStoreImpl ) store ).getFulltextIndex().clear();
-	    this.neoSail.shutDown();
+	    this.graphDbSail.shutDown();
     }
 
 	@Override

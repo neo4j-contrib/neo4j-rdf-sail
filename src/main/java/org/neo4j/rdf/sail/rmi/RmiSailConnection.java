@@ -5,7 +5,7 @@ import java.rmi.RemoteException;
 import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
-import org.neo4j.rdf.sail.NeoRdfSailConnection;
+import org.neo4j.rdf.sail.GraphDatabaseSailConnection;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -20,8 +20,8 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 /**
- * An RMI interface for the {@link NeoRdfSailConnection} which is a
- * {@link SailConnection} with some added functionality for a neo sail.
+ * An RMI interface for the {@link GraphDatabaseSailConnection} which is a
+ * {@link SailConnection} with some added functionality for a graph db sail.
  */
 interface RmiSailConnection extends Remote
 {

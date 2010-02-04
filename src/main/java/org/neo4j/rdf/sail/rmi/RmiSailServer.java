@@ -13,7 +13,7 @@ import java.rmi.server.RMIClientSocketFactory;
 import java.rmi.server.RMIServerSocketFactory;
 import java.rmi.server.UnicastRemoteObject;
 
-import org.neo4j.rdf.sail.NeoRdfSailConnection;
+import org.neo4j.rdf.sail.GraphDatabaseSailConnection;
 import org.openrdf.model.Statement;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailChangedEvent;
@@ -174,7 +174,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
      * @param callback acts as {@link SailConnectionListener} over RMI.
      * @throws RemoteException if an RMI problem occurs.
      * @throws SailException if a connection couldn't be retrieved.
-     * @return an RMI version of a {@link NeoRdfSailConnection}.
+     * @return an RMI version of a {@link GraphDatabaseSailConnection}.
      */
     public RmiSailConnection connect(
         final RmiSailConnectionListenerCallback callback )

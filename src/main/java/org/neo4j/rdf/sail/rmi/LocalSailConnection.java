@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 import java.util.Map;
 
 import org.neo4j.rdf.sail.FulltextQueryResult;
-import org.neo4j.rdf.sail.NeoRdfSailConnection;
+import org.neo4j.rdf.sail.GraphDatabaseSailConnection;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -28,10 +28,10 @@ import org.openrdf.sail.SailConnectionListener;
 import org.openrdf.sail.SailException;
 
 /**
- * An implementation of {@link NeoRdfSailConnection} which delegates down
+ * An implementation of {@link GraphDatabaseSailConnection} which delegates down
  * to an {@link SailConnection} retreived from another {@link Sail} over RMI.
  */
-class LocalSailConnection implements NeoRdfSailConnection
+class LocalSailConnection implements GraphDatabaseSailConnection
 {
     private final RmiSailConnection connection;
     private final RmiSailConnectionListenerCallbackImpl callback;

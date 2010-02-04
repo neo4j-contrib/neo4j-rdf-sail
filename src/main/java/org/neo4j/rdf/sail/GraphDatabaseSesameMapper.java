@@ -15,7 +15,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
  * Date: Apr 25, 2008
  * Time: 7:17:16 PM
  */
-public class NeoSesameMapper {
+public class GraphDatabaseSesameMapper {
     // TODO: check whether ValueFactoryImpl is thread-safe
     private static final ValueFactory VALUE_FACTORY = new ValueFactoryImpl();
 
@@ -77,7 +77,7 @@ public class NeoSesameMapper {
                         createContext(context));
         if ( readMetadata )
         {
-            result = new NeoRdfStatementImpl( result, from );
+            result = new GraphDatabaseStatementImpl( result, from );
         }
         return result;
     }

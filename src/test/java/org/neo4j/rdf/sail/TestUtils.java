@@ -11,22 +11,22 @@ import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.fulltext.SimpleFulltextIndex;
 import org.neo4j.util.EntireGraphDeletor;
 
-public class NeoTestUtils
+public class TestUtils
 {
 	private static final File BASE_DIR = new File( "target/var" );
 	
-	private NeoTestUtils()
+	private TestUtils()
 	{
 	}
 
-	public static void deleteEntireNodeSpace( GraphDatabaseService neo )
+	public static void deleteEntireNodeSpace( GraphDatabaseService graphDb )
 	{
-		Transaction tx = neo.beginTx();
+		Transaction tx = graphDb.beginTx();
 		try
 		{
-			for ( Relationship rel : neo.getReferenceNode().getRelationships() )
+			for ( Relationship rel : graphDb.getReferenceNode().getRelationships() )
 			{
-				Node node = rel.getOtherNode( neo.getReferenceNode() );
+				Node node = rel.getOtherNode( graphDb.getReferenceNode() );
 				rel.delete();
 				new EntireGraphDeletor().delete( node );
 			}
@@ -38,7 +38,7 @@ public class NeoTestUtils
 		}
 	}
 
-	public static GraphDatabaseService createNeo()
+	public static GraphDatabaseService createGraphDb()
 	{
 		String dir = new File( BASE_DIR, "neo" ).getAbsolutePath();
 		removeDir( new File( dir ) );
@@ -46,9 +46,9 @@ public class NeoTestUtils
 		return neo;
 	}
 	
-	public static FulltextIndex createFulltextIndex( GraphDatabaseService neo )
+	public static FulltextIndex createFulltextIndex( GraphDatabaseService graphDb )
 	{
-		return new SimpleFulltextIndex( neo, new File( BASE_DIR, "fulltext" ) );
+		return new SimpleFulltextIndex( graphDb, new File( BASE_DIR, "fulltext" ) );
 	}
 
 	private static void removeDir( File dir )

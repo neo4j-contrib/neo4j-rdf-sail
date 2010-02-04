@@ -55,7 +55,7 @@ import org.openrdf.sail.helpers.DefaultSailChangedEvent;
 /**
  * Author: josh Date: Apr 25, 2008 Time: 5:36:36 PM
  */
-public class NeoSailConnection implements NeoRdfSailConnection
+public class GraphDatabaseSailConnectionImpl implements GraphDatabaseSailConnection
 {
     private static final int DEFAULT_BATCHSIZE = 5000;
     // number of times to retry work in a transaction if deadlock detected
@@ -64,7 +64,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     private static final AtomicInteger connectionIdentifier = 
         new AtomicInteger( 0 );
     
-    private final GraphDatabaseService neo;
+    private final GraphDatabaseService graphDb;
     private final TransactionManager tm;
     private final RdfStore store;
     private final ValueFactory valueFactory;
@@ -76,33 +76,31 @@ public class NeoSailConnection implements NeoRdfSailConnection
     private final AtomicInteger writeOperationCount = new AtomicInteger();
     private final Sail sail;
     private final AtomicInteger totalAddCount = new AtomicInteger();
-
     private final List<Command> commands = new ArrayList<Command>();
-    
     private final int identifier;
     
-    private enum NeoSailRelTypes implements RelationshipType
+    private enum SailRelTypes implements RelationshipType
     {
         REF_TO_NAMESPACE
     }
 
-    NeoSailConnection( final GraphDatabaseService neo, final RdfStore store, final Sail sail,
+    GraphDatabaseSailConnectionImpl( final GraphDatabaseService graphDb, final RdfStore store, final Sail sail,
         final ValueFactory valueFactory, final Collection<SailChangedListener> sailChangedListeners )
     {
-        this( neo, store, sail, valueFactory, DEFAULT_BATCHSIZE, sailChangedListeners );
+        this( graphDb, store, sail, valueFactory, DEFAULT_BATCHSIZE, sailChangedListeners );
     }
 
-    NeoSailConnection( final GraphDatabaseService neo, final RdfStore store, final Sail sail,
+    GraphDatabaseSailConnectionImpl( final GraphDatabaseService graphDb, final RdfStore store, final Sail sail,
         final ValueFactory valueFactory, int batchSize, final Collection<SailChangedListener> sailChangedListeners )
     {
-        this.neo = neo;
+        this.graphDb = graphDb;
         this.store = store;
         this.sail = sail;
         this.valueFactory = valueFactory;
         this.open = true;
         this.batchSize = batchSize;
         this.sailChangedListeners = sailChangedListeners;
-        this.tm = (( EmbeddedGraphDatabase ) neo).getConfig().getTxModule().getTxManager();
+        this.tm = (( EmbeddedGraphDatabase ) graphDb).getConfig().getTxModule().getTxManager();
         // setupTransaction();
         this.identifier = connectionIdentifier.incrementAndGet();
         log( "connection created" );
@@ -117,13 +115,14 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         if ( transaction != null )
         {
-            MutatingLogger.getLogger().info( "NeoSailConnection[" + identifier +
-                "] running with tx[" + transaction.hashCode() + "]: " + msg );
+            MutatingLogger.getLogger().info( getClass().getSimpleName() + "[" +
+                identifier + "] running with tx[" + transaction.hashCode() +
+                "]: " + msg );
         }
         else
         {
-            MutatingLogger.getLogger().info( "NeoSailConnection[" + identifier +
-                "] running with tx[" + null + "]: " + msg );
+            MutatingLogger.getLogger().info( getClass().getSimpleName() + "[" +
+                identifier + "] running with tx[" + null + "]: " + msg );
         }
     }
 
@@ -265,7 +264,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         finally
         {
             log( "connection closed" );
-            ( ( NeoSail ) this.sail ).connectionEnded( this.identifier, this );
+            ( ( GraphDatabaseSail ) this.sail ).connectionEnded( this.identifier, this );
             transaction = null;
             if ( otherTx != null )
             {
@@ -355,7 +354,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         return null;
     }
     
-    protected synchronized Iterator<CompleteStatement> getNeoRdfStatements(
+    protected synchronized Iterator<CompleteStatement> internalGetStatements(
         final Resource subject, final URI predicate, final Value object,
         boolean includeInferred, final Resource... contexts )
         throws SailException
@@ -371,7 +370,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         {
             Iterable<CompleteStatement> result = null;
             if ( contexts.length == 0 ) {
-                WildcardStatement statement = SesameNeoMapper.
+                WildcardStatement statement = SesameGraphDatabaseMapper.
                     createWildcardStatement( subject, predicate, object );
                 Iterable<CompleteStatement> iterator =
                     store.getStatements( statement, includeInferred );
@@ -383,7 +382,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
                     new LinkedList<Iterable<CompleteStatement>>();
                 for ( Resource context : contexts )
                 {
-                    WildcardStatement statement = SesameNeoMapper
+                    WildcardStatement statement = SesameGraphDatabaseMapper
                         .createWildcardStatement( subject, predicate, object,
                             context );
                     Iterable<CompleteStatement> iterator = store
@@ -409,7 +408,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
-            return new NeoStatementIteration( getNeoRdfStatements( subject,
+            return new GraphDatabaseStatementIteration( internalGetStatements( subject,
                 predicate, object, includeInferred, contexts ), this );
         }
         finally
@@ -531,10 +530,10 @@ public class NeoSailConnection implements NeoRdfSailConnection
             log( "addStatement with metadata: " + spogString( subject, 
                 predicate, object, contexts ) );
             innerAddStatement( subject, predicate, object, contexts );
-            CompleteStatement statement = getNeoRdfStatements( subject,
+            CompleteStatement statement = internalGetStatements( subject,
                 predicate, object, false, contexts ).next();
             setStatementMetadata( statement, metadata );
-            result = NeoSesameMapper.createStatement( statement, true );
+            result = GraphDatabaseSesameMapper.createStatement( statement, true );
         }
         finally
         {
@@ -551,10 +550,10 @@ public class NeoSailConnection implements NeoRdfSailConnection
         try
         {
             log( "setStatementMetadata: " + statement );
-            CompleteStatement neoStatement = getNeoRdfStatements(
+            CompleteStatement resultStatement = internalGetStatements(
                 statement.getSubject(), statement.getPredicate(),
                 statement.getObject(), false, statement.getContext() ).next();
-            setStatementMetadata( neoStatement, metadata );
+            setStatementMetadata( resultStatement, metadata );
         }
         finally
         {
@@ -583,14 +582,14 @@ public class NeoSailConnection implements NeoRdfSailConnection
                     if ( !existingMetadata.get( key ).equals( value ) )
                     {
                         existingMetadata.set( key,
-                            SesameNeoMapper.createLiteral( value ) );
+                            SesameGraphDatabaseMapper.createLiteral( value ) );
                     }
                 }
                 else if ( value != null )
                 {
                     // Add
                     existingMetadata.set( key,
-                        SesameNeoMapper.createLiteral( value ) );
+                        SesameGraphDatabaseMapper.createLiteral( value ) );
                 }
                 else
                 {
@@ -610,7 +609,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         if ( contexts.length == 0 )
         {
-            org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper
+            org.neo4j.rdf.model.CompleteStatement statement = SesameGraphDatabaseMapper
                 .createCompleteStatement( subject, predicate, object,
                     ( Resource ) null );
             store.addStatements( statement );
@@ -619,7 +618,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         {
             for ( Resource context : contexts )
             {
-                org.neo4j.rdf.model.CompleteStatement statement = SesameNeoMapper
+                org.neo4j.rdf.model.CompleteStatement statement = SesameGraphDatabaseMapper
                     .createCompleteStatement( subject, predicate, object,
                         context );
                 store.addStatements( statement );
@@ -684,7 +683,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     {
         if ( contexts.length == 0 )
         {
-            org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
+            org.neo4j.rdf.model.WildcardStatement statement = SesameGraphDatabaseMapper
                 .createWildcardStatement( subject, predicate, object );
             store.removeStatements( statement );
         }
@@ -692,7 +691,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
         {
             for ( Resource context : contexts )
             {
-                org.neo4j.rdf.model.WildcardStatement statement = SesameNeoMapper
+                org.neo4j.rdf.model.WildcardStatement statement = SesameGraphDatabaseMapper
                     .createWildcardStatement( subject, predicate, object,
                         context );
                 store.removeStatements( statement );
@@ -857,7 +856,7 @@ public class NeoSailConnection implements NeoRdfSailConnection
     public CloseableIteration<? extends Namespace, SailException> getNamespaces()
         throws SailException
     {
-        return new NeoNamespaceIteration( getNamespaceNode(), neo );
+        return new GraphDatabaseNamespaceIteration( getNamespaceNode(), graphDb );
     }
 
     public synchronized String getNamespace( final String prefix ) 
@@ -892,8 +891,8 @@ public class NeoSailConnection implements NeoRdfSailConnection
 
     private Node getNamespaceNode()
     {
-        return new NeoUtil( neo )
-            .getOrCreateSubReferenceNode( NeoSailRelTypes.REF_TO_NAMESPACE );
+        return new NeoUtil( graphDb )
+            .getOrCreateSubReferenceNode( SailRelTypes.REF_TO_NAMESPACE );
     }
 
     public synchronized void removeNamespace( final String prefix ) 

@@ -33,11 +33,11 @@ public class ContextHandling {
             return new Context[] { org.neo4j.rdf.model.Context.NULL };
         }
         
-        Context[] neoContexts = new Context[ resources.length ];
+        Context[] contexts = new Context[ resources.length ];
         for ( int i = 0; i < resources.length; i++ )
         {
-            neoContexts[ i ] = createContext( resources[ i ] );
+            contexts[ i ] = createContext( resources[ i ] );
         }
-        return neoContexts;
+        return contexts;
     }
 }

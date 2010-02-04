@@ -24,23 +24,22 @@ import org.openrdf.sail.SailException;
  * Date: Apr 25, 2008
  * Time: 5:32:22 PM
  */
-public class NeoSail implements Sail {
+public class GraphDatabaseSail implements Sail {
     // TODO: is there such thing as a read-only NeoSail?
     private static final boolean IS_WRITABLE = true;
 
-    private final GraphDatabaseService neo;
+    private final GraphDatabaseService graphDb;
     private final RdfStore store;
     private final ValueFactory valueFactory = new ValueFactoryImpl();
     private final Set<SailChangedListener> listeners = new HashSet<SailChangedListener>();
     private final AtomicInteger connectionCounter = new AtomicInteger();
     
-    private final Map<Integer, NeoSailConnection> activeConnections =
+    private final Map<Integer, GraphDatabaseSailConnectionImpl> activeConnections =
         Collections.synchronizedMap(
-            new HashMap<Integer, NeoSailConnection>() );
+            new HashMap<Integer, GraphDatabaseSailConnectionImpl>() );
     
-    public NeoSail(final GraphDatabaseService neo, final RdfStore store) {
-//System.out.println("we're creating a NeoSail: " + neo + ", " + store);
-        this.neo = neo;
+    public GraphDatabaseSail(final GraphDatabaseService graphDb, final RdfStore store) {
+        this.graphDb = graphDb;
         this.store = store;
     }
 
@@ -68,10 +67,10 @@ public class NeoSail implements Sail {
     
     private void printActiveConnections()
     {
-        for ( Map.Entry<Integer, NeoSailConnection> entry :
+        for ( Map.Entry<Integer, GraphDatabaseSailConnectionImpl> entry :
             this.activeConnections.entrySet() )
         {
-            String logString = "NeoSailConnection[" +
+            String logString = entry.getValue().getClass().getSimpleName() + "[" +
                 entry.getKey() + "] still open when shutting down sail, closing";
             TemporaryLogger.getLogger().warn( logString );
             MutatingLogger.getLogger().warn( logString );
@@ -93,13 +92,13 @@ public class NeoSail implements Sail {
 
     public SailConnection getConnection() throws SailException {
         connectionCounter.incrementAndGet();
-        NeoSailConnection connection =
-            new NeoSailConnection(neo, store, this, valueFactory, listeners);
+        GraphDatabaseSailConnectionImpl connection =
+            new GraphDatabaseSailConnectionImpl(graphDb, store, this, valueFactory, listeners);
         this.activeConnections.put( connection.getIdentifier(), connection );
         return connection;
     }
     
-    void connectionEnded( int identifier, NeoSailConnection connection )
+    void connectionEnded( int identifier, GraphDatabaseSailConnectionImpl connection )
     {
         this.activeConnections.remove( identifier );
     }
