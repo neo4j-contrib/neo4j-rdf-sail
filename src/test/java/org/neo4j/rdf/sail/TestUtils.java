@@ -11,7 +11,7 @@ import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.fulltext.SimpleFulltextIndex;
 import org.neo4j.util.EntireGraphDeletor;
 
-public class TestUtils
+public abstract class TestUtils
 {
 	private static final File BASE_DIR = new File( "target/var" );
 	
