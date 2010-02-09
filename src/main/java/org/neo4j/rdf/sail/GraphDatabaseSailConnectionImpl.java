@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
+import org.neo4j.commons.iterator.CombiningIterable;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
@@ -31,8 +32,7 @@ import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
 import org.neo4j.rdf.util.TemporaryLogger;
-import org.neo4j.commons.iterator.CombiningIterable;
-import org.neo4j.util.NeoUtil;
+import org.neo4j.util.GraphDatabaseUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -891,7 +891,7 @@ public class GraphDatabaseSailConnectionImpl implements GraphDatabaseSailConnect
 
     private Node getNamespaceNode()
     {
-        return new NeoUtil( graphDb )
+        return new GraphDatabaseUtil( graphDb )
             .getOrCreateSubReferenceNode( SailRelTypes.REF_TO_NAMESPACE );
     }
 
