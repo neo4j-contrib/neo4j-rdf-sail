@@ -15,8 +15,8 @@
   <groupId>org.neo4j</groupId>
   <artifactId>neo4j-${short-name}</artifactId>
   <version>0.5-SNAPSHOT</version>
-  <name>Neo RDF SAIL</name>
-  <description>A Neo RDF Sesame Storage and Inference Layer</description>
+  <name>Neo4j RDF SAIL</name>
+  <description>A Neo4j RDF Sesame Storage and Inference Layer</description>
   <url>http://components.neo4j.org/${project.artifactId}/</url>
 
   <scm>
