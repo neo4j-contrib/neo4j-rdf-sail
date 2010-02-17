@@ -40,10 +40,10 @@ public abstract class TestUtils
 
 	public static GraphDatabaseService createGraphDb()
 	{
-		String dir = new File( BASE_DIR, "neo" ).getAbsolutePath();
+		String dir = new File( BASE_DIR, "db" ).getAbsolutePath();
 		removeDir( new File( dir ) );
-		final GraphDatabaseService neo = new EmbeddedGraphDatabase( dir );
-		return neo;
+		final GraphDatabaseService graphDb = new EmbeddedGraphDatabase( dir );
+		return graphDb;
 	}
 	
 	public static FulltextIndex createFulltextIndex( GraphDatabaseService graphDb )

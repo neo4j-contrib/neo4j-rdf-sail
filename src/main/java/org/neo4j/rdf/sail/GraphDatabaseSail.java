@@ -25,7 +25,7 @@ import org.openrdf.sail.SailException;
  * Time: 5:32:22 PM
  */
 public class GraphDatabaseSail implements Sail {
-    // TODO: is there such thing as a read-only NeoSail?
+    // TODO: is there such thing as a read-only Sail?
     private static final boolean IS_WRITABLE = true;
 
     private final GraphDatabaseService graphDb;

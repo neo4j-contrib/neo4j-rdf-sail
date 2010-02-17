@@ -86,12 +86,12 @@ public abstract class BaseSailTest
         }
 	}
 
-	protected final RdfStore createStore( GraphDatabaseService neo, 
+	protected final RdfStore createStore( GraphDatabaseService graphDb, 
         IndexService indexService )
 	{
-		fulltextIndex = TestUtils.createFulltextIndex( neo );
+		fulltextIndex = TestUtils.createFulltextIndex( graphDb );
 		clearFulltextIndex();
-		return new VerboseQuadStore( neo, indexService, null,
+		return new VerboseQuadStore( graphDb, indexService, null,
 			fulltextIndex );
 	}
     
@@ -132,7 +132,7 @@ public abstract class BaseSailTest
     // full text search ////////////////////////////////////////////////////////
 
 	@Test
-    public void testNeo() throws Exception {
+    public void testBasic() throws Exception {
         Repository repo = new SailRepository( sail );
         RepositoryConnection rc = repo.getConnection();
         rc.add( BaseSailTest.class.getResource( "fulltextTest.trig" ), "",
@@ -1551,16 +1551,16 @@ public abstract class BaseSailTest
             itr.close();
             
             ValueFactory vf = new ValueFactoryImpl();
-            GraphDatabaseStatement neoRdfStatement = ( GraphDatabaseStatement ) statement;
+            GraphDatabaseStatement graphDbRdfStatement = ( GraphDatabaseStatement ) statement;
             Literal value = vf.createLiteral( "One of those test values" );
             Literal value2 = vf.createLiteral( 12345d );
-            Map<String, Literal> metadata = neoRdfStatement.getMetadata();
+            Map<String, Literal> metadata = graphDbRdfStatement.getMetadata();
             assertEquals( 0, metadata.size() );
             metadata.put( uriD.stringValue(), value );
             metadata.put( uriE.stringValue(), value2 );
             
             ( ( GraphDatabaseSailConnection ) sc ).setStatementMetadata(
-                neoRdfStatement, metadata );
+                graphDbRdfStatement, metadata );
             sc.commit();
             sc.close();
             sc = sail.getConnection();
@@ -1568,8 +1568,8 @@ public abstract class BaseSailTest
             itr = sc.getStatements( uriA, uriB, uriC, includeInferred );
             statement = itr.next();
             itr.close();
-            neoRdfStatement = ( GraphDatabaseStatement ) statement;
-            metadata = neoRdfStatement.getMetadata();
+            graphDbRdfStatement = ( GraphDatabaseStatement ) statement;
+            metadata = graphDbRdfStatement.getMetadata();
             assertEquals( 2, metadata.size() );
             assertEquals( value, metadata.get( uriD.stringValue() ) );
             assertEquals( value2, metadata.get( uriE.stringValue() ) );
@@ -1583,8 +1583,8 @@ public abstract class BaseSailTest
             itr = sc.getStatements( uriA, uriB, uriC, includeInferred );
             statement = itr.next();
             itr.close();
-            neoRdfStatement = ( GraphDatabaseStatement ) statement;
-            metadata = neoRdfStatement.getMetadata();
+            graphDbRdfStatement = ( GraphDatabaseStatement ) statement;
+            metadata = graphDbRdfStatement.getMetadata();
             
             assertEquals( 1, metadata.size() );
             assertEquals( value, metadata.get( uriD.stringValue() ) );
@@ -1627,24 +1627,24 @@ public abstract class BaseSailTest
             metadata.put( metadataKey, valueA );
             Statement statement = sc.addStatement( metadata, uriA, uriB, uriC,
                 contextA );
-            GraphDatabaseStatement neoRdfStatement = ( GraphDatabaseStatement ) statement;
+            GraphDatabaseStatement graphDbRdfStatement = ( GraphDatabaseStatement ) statement;
             assertEquals( valueA,
-                neoRdfStatement.getMetadata().get( metadataKey ) );
+                graphDbRdfStatement.getMetadata().get( metadataKey ) );
             
             metadata.clear();
             metadata.put( metadataKey, valueB );
             statement = sc.addStatement( metadata, uriA, uriB, uriC, contextB );
-            neoRdfStatement = ( GraphDatabaseStatement ) statement;
+            graphDbRdfStatement = ( GraphDatabaseStatement ) statement;
             assertEquals( valueB,
-                neoRdfStatement.getMetadata().get( metadataKey ) );
-            neoRdfStatement = ( GraphDatabaseStatement ) sc.getStatements( uriA, uriB,
+                graphDbRdfStatement.getMetadata().get( metadataKey ) );
+            graphDbRdfStatement = ( GraphDatabaseStatement ) sc.getStatements( uriA, uriB,
                 uriC, includeInferred, contextA ).next();
             assertEquals( valueA,
-                neoRdfStatement.getMetadata().get( metadataKey ) );
-            neoRdfStatement = ( GraphDatabaseStatement ) sc.getStatements( uriA, uriB,
+                graphDbRdfStatement.getMetadata().get( metadataKey ) );
+            graphDbRdfStatement = ( GraphDatabaseStatement ) sc.getStatements( uriA, uriB,
                 uriC, includeInferred, contextB ).next();
             assertEquals( valueB,
-                neoRdfStatement.getMetadata().get( metadataKey ) );
+                graphDbRdfStatement.getMetadata().get( metadataKey ) );
             
             sc.removeStatements( uriA, null, null );
             sc.commit();

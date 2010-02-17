@@ -17,14 +17,14 @@ public class GraphDatabaseStatementImpl implements GraphDatabaseStatement, Seria
     private Map<String, Literal> metadata;
     
     public GraphDatabaseStatementImpl( Statement statement,
-        CompleteStatement neoStatement )
+        CompleteStatement graphDbStatement )
     {
         this.statement = statement;
         this.metadata = new HashMap<String, Literal>();
-        for ( String key : neoStatement.getMetadata().getKeys() )
+        for ( String key : graphDbStatement.getMetadata().getKeys() )
         {
             this.metadata.put( key, GraphDatabaseSesameMapper.createLiteral(
-                neoStatement.getMetadata().get( key ) ) );
+                    graphDbStatement.getMetadata().get( key ) ) );
         }
     }
     

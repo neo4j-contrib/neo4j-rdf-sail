@@ -19,7 +19,7 @@ public class RmiSailTest extends BaseSailTest
 {
 	private static final int PORT = 5001;
 	private static final String BASE_URI = "rmi://localhost:" + PORT + "/";
-	private static final String RESOURCE_URI = BASE_URI + "NeoSail";
+	private static final String RESOURCE_URI = BASE_URI + "GraphDbSail";
 
     private GraphDatabaseService graphDb = null;
     private IndexService idx = null;
@@ -73,22 +73,22 @@ public class RmiSailTest extends BaseSailTest
 	{
 		/* RESTORE ME
 		LocateRegistry.createRegistry( PORT );
-		final GraphDatabaseService neo = NeoTestUtils.createNeo();
-        final IndexService idx = new CachingLuceneIndexService( neo );
+		final GraphDatabaseService graphDb = TestUtils.createGraphDb();
+        final IndexService idx = new CachingLuceneIndexService( graphDb );
         Runtime.getRuntime().addShutdownHook( new Thread()
         {
             @Override
             public void run()
             {
-                NeoTestUtils.deleteEntireNodeSpace( neo );
+                TestUtils.deleteEntireNodeSpace( graphDb );
                 idx.shutdown();
-                neo.shutdown();
+                graphDb.shutdown();
             }
         } );
-		RdfStore store = createStore( neo, idx );
-		new BatchInserter( neo, store )
+		RdfStore store = createStore( graphDb, idx );
+		new BatchInserter( graphDb, store )
 		    .insert( BatchInserter.listFiles( args ) );
-		RmiSailServer.register( new NeoSail( neo, store ), new java.net.URI(
+		RmiSailServer.register( new GraphDbSail( graphDb, store ), new java.net.URI(
 		    RESOURCE_URI ) );
 		System.out.println( "Server started" );
 		*/
@@ -128,6 +128,6 @@ public class RmiSailTest extends BaseSailTest
 	@Override
 	protected void deleteEntireNodeSpace() throws Exception
 	{
-//        NeoTestUtils.deleteEntireNodeSpace( neo );
+//        TestUtils.deleteEntireNodeSpace( graphDb );
 	}
 }

@@ -19,7 +19,7 @@ public class GraphDatabaseSailTest extends BaseSailTest
 	}
 
 	@Test
-	public void testLoadNeoSail()
+	public void testLoadGraphDbSail()
 	{
 	}
 
@@ -55,6 +55,6 @@ public class GraphDatabaseSailTest extends BaseSailTest
 	@Override
 	protected void deleteEntireNodeSpace() throws Exception
 	{
-//		NeoTestUtils.deleteEntireNodeSpace( neo );
+//		TestUtils.deleteEntireNodeSpace( graphDb );
 	}
 }

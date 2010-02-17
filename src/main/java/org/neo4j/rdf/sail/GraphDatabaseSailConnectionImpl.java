@@ -764,9 +764,6 @@ public class GraphDatabaseSailConnectionImpl implements GraphDatabaseSailConnect
     {
         TemporaryLogger.getLogger().info( this.getClass().getName() +
             " commit called" );
-//        System.out.println( "NeoSailConnection: commit invoked, at " +
-//            writeOperationCount.get() + " op count (total of " +
-//            totalAddCount.get() + ")" );
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
@@ -793,8 +790,6 @@ public class GraphDatabaseSailConnectionImpl implements GraphDatabaseSailConnect
 
     public synchronized void rollback() throws SailException
     {
-//        System.out.println( "NeoSailConnection: ROLLBACK invoked, at " +
-//            writeOperationCount.get() + " op count" );        
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
