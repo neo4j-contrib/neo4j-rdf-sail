@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.rdf.sail.utils.MutatingLogger;
 import org.neo4j.rdf.store.RdfStore;
-import org.neo4j.rdf.util.TemporaryLogger;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.sail.Sail;
@@ -57,8 +56,6 @@ public class GraphDatabaseSail implements Sail {
     }
 
     public void shutDown() throws SailException {
-        TemporaryLogger.getLogger().info( getClass().getName() +
-            " shutDown called", new Exception() );
         printActiveConnections();
 //      System.out.println( "Number of history connections: " +
 //          connectionCounter.get() );
@@ -72,7 +69,6 @@ public class GraphDatabaseSail implements Sail {
         {
             String logString = entry.getValue().getClass().getSimpleName() + "[" +
                 entry.getKey() + "] still open when shutting down sail, closing";
-            TemporaryLogger.getLogger().warn( logString );
             MutatingLogger.getLogger().warn( logString );
             try
             {
@@ -80,7 +76,6 @@ public class GraphDatabaseSail implements Sail {
             }
             catch ( Exception e )
             {
-                TemporaryLogger.getLogger().warn( e );
                 MutatingLogger.getLogger().warn( e );
             }
         }

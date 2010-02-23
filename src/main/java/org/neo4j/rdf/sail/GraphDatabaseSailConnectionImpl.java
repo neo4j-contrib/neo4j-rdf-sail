@@ -31,7 +31,6 @@ import org.neo4j.rdf.sail.utils.MutatingLogger;
 import org.neo4j.rdf.sail.utils.SailConnectionTripleSource;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
-import org.neo4j.rdf.util.TemporaryLogger;
 import org.neo4j.util.GraphDatabaseUtil;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
@@ -762,8 +761,6 @@ public class GraphDatabaseSailConnectionImpl implements GraphDatabaseSailConnect
     
     public synchronized void commit() throws SailException
     {
-        TemporaryLogger.getLogger().info( this.getClass().getName() +
-            " commit called" );
         Transaction otherTx = suspendOtherAndResumeThis();
         try
         {
