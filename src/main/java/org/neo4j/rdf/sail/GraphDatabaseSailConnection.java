@@ -9,6 +9,7 @@ import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+import org.openrdf.sail.NotifyingSailConnection;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
@@ -22,7 +23,7 @@ import org.openrdf.sail.SailException;
  * other words beginning with comput) and science in them.
  * 
  */
-public interface GraphDatabaseSailConnection extends SailConnection
+public interface GraphDatabaseSailConnection extends NotifyingSailConnection
 {
     CloseableIteration<? extends FulltextQueryResult, SailException>
         evaluate( String query ) throws SailException;

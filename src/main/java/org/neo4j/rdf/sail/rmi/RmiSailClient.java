@@ -9,9 +9,10 @@ import java.rmi.RemoteException;
 
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.sail.NotifyingSail;
+import org.openrdf.sail.NotifyingSailConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailChangedListener;
-import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 /**
@@ -19,7 +20,7 @@ import org.openrdf.sail.SailException;
  * You can connect to instances which were registered with {@link RmiSailServer}
  * in either this or another jvm instance.
  */
-public class RmiSailClient implements Sail
+public class RmiSailClient implements NotifyingSail
 {
     static final String RMI_CONNECTION_FAILED = "RMI connection failed.";
     static final ValueFactory valueFactory = new ValueFactoryImpl();
@@ -54,7 +55,7 @@ public class RmiSailClient implements Sail
         rmi = ( RmiSail ) Naming.lookup( resourceUri.toString() );
     }
     
-    public SailConnection getConnection() throws SailException
+    public NotifyingSailConnection getConnection() throws SailException
     {
         try
         {

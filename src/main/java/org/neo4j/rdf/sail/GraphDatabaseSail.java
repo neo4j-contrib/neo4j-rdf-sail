@@ -13,9 +13,9 @@ import org.neo4j.rdf.sail.utils.MutatingLogger;
 import org.neo4j.rdf.store.RdfStore;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.Sail;
+import org.openrdf.sail.NotifyingSail;
+import org.openrdf.sail.NotifyingSailConnection;
 import org.openrdf.sail.SailChangedListener;
-import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 /**
@@ -23,7 +23,7 @@ import org.openrdf.sail.SailException;
  * Date: Apr 25, 2008
  * Time: 5:32:22 PM
  */
-public class GraphDatabaseSail implements Sail {
+public class GraphDatabaseSail implements NotifyingSail {
     // TODO: is there such thing as a read-only Sail?
     private static final boolean IS_WRITABLE = true;
 
@@ -85,7 +85,7 @@ public class GraphDatabaseSail implements Sail {
         return IS_WRITABLE;
     }
 
-    public SailConnection getConnection() throws SailException {
+    public NotifyingSailConnection getConnection() throws SailException {
         connectionCounter.incrementAndGet();
         GraphDatabaseSailConnectionImpl connection =
             new GraphDatabaseSailConnectionImpl(graphDb, store, this, valueFactory, listeners);

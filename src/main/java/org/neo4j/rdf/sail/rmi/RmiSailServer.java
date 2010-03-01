@@ -15,6 +15,8 @@ import java.rmi.server.UnicastRemoteObject;
 
 import org.neo4j.rdf.sail.GraphDatabaseSailConnection;
 import org.openrdf.model.Statement;
+import org.openrdf.sail.NotifyingSail;
+import org.openrdf.sail.NotifyingSailConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailChangedEvent;
 import org.openrdf.sail.SailChangedListener;
@@ -37,10 +39,10 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
             CloseableIteration<E, X> iter ) throws RemoteException;
     }
     
-    private final Sail sail;
+    private final NotifyingSail sail;
     private final RmiSailConnectionFactory factory;
     
-    private RmiSailServer( Sail sail ) throws RemoteException
+    private RmiSailServer( NotifyingSail sail ) throws RemoteException
     {
         super();
         this.sail = sail;
@@ -60,7 +62,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         };
     }
     
-    private RmiSailServer( Sail sail, final int port ) throws RemoteException
+    private RmiSailServer( NotifyingSail sail, final int port ) throws RemoteException
     {
         super( port );
         this.sail = sail;
@@ -80,7 +82,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         };
     }
     
-    private RmiSailServer( Sail sail, final int port,
+    private RmiSailServer( NotifyingSail sail, final int port,
         final RMIClientSocketFactory csf, final RMIServerSocketFactory ssf )
         throws RemoteException
     {
@@ -115,7 +117,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
      * @throws RemoteException if an RMI problem occurs.
      * @throws AlreadyBoundException if the given URI is already bound.
      */
-    public static void register( Sail sail, URI resourceUri )
+    public static void register( NotifyingSail sail, URI resourceUri )
         throws MalformedURLException, RemoteException, AlreadyBoundException
     {
         Naming.rebind( resourceUri.toString(), new RmiSailServer( sail ) );
@@ -135,7 +137,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
      * @throws RemoteException if an RMI problem occurs.
      * @throws AlreadyBoundException if the given URI is already bound.
      */
-    public static void register( Sail sail, URI resourceUri, int port )
+    public static void register( NotifyingSail sail, URI resourceUri, int port )
         throws MalformedURLException, RemoteException, AlreadyBoundException
     {
         Naming.rebind( resourceUri.toString(),
@@ -160,7 +162,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
      * @throws RemoteException if an RMI problem occurs.
      * @throws AlreadyBoundException if the given URI is already bound.
      */
-    public static void register( Sail sail, URI resourceUri, int port,
+    public static void register( NotifyingSail sail, URI resourceUri, int port,
         RMIClientSocketFactory csf, RMIServerSocketFactory ssf )
         throws MalformedURLException, RemoteException, AlreadyBoundException
     {
@@ -180,7 +182,7 @@ public class RmiSailServer extends UnicastRemoteObject implements RmiSail
         final RmiSailConnectionListenerCallback callback )
         throws RemoteException, SailException
     {
-        final SailConnection connection = sail.getConnection();
+        final NotifyingSailConnection connection = sail.getConnection();
         final RmiSailConnectionImpl remote = factory.connect(connection);
         connection.addConnectionListener( new SailConnectionListener()
         {

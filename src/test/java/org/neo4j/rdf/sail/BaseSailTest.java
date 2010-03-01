@@ -21,10 +21,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.index.IndexService;
 import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
-import org.neo4j.index.IndexService;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
@@ -45,7 +45,8 @@ import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.rio.RDFFormat;
-import org.openrdf.sail.Sail;
+import org.openrdf.sail.NotifyingSail;
+import org.openrdf.sail.NotifyingSailConnection;
 import org.openrdf.sail.SailChangedEvent;
 import org.openrdf.sail.SailChangedListener;
 import org.openrdf.sail.SailConnection;
@@ -54,7 +55,7 @@ import org.openrdf.sail.SailException;
 
 public abstract class BaseSailTest
 {
-	private Sail sail = null;
+	private NotifyingSail sail = null;
 	private FulltextIndex fulltextIndex = null;
 
 	@Before
@@ -117,7 +118,7 @@ public abstract class BaseSailTest
         }
 	}
 
-	protected Sail sail()
+	protected NotifyingSail sail()
 	{
 		return this.sail;
 	}
@@ -127,7 +128,7 @@ public abstract class BaseSailTest
 		sail().shutDown();
 	}
 
-	protected abstract Sail createSail() throws Exception;
+	protected abstract NotifyingSail createSail() throws Exception;
 
     // full text search ////////////////////////////////////////////////////////
 
@@ -1187,7 +1188,7 @@ public abstract class BaseSailTest
 	public void testSailConnectionListeners() throws Exception
 	{
 		TestListener listener1 = new TestListener(), listener2 = new TestListener();
-		SailConnection sc = sail.getConnection();
+		NotifyingSailConnection sc = sail.getConnection();
 		sc.addConnectionListener( listener1 );
 		URI uriA = sail.getValueFactory().createURI( "http://example.org/uriA" );
 		sc.removeStatements( null, null, null, uriA );

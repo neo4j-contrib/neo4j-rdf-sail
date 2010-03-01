@@ -2,10 +2,10 @@ package org.neo4j.rdf.sail;
 
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.index.IndexService;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
-import org.neo4j.index.IndexService;
-import org.openrdf.sail.Sail;
+import org.openrdf.sail.NotifyingSail;
 
 public class GraphDatabaseSailTest extends BaseSailTest
 {
@@ -47,7 +47,7 @@ public class GraphDatabaseSailTest extends BaseSailTest
 	}
 
 	@Override
-	protected Sail createSail() throws Exception
+	protected NotifyingSail createSail() throws Exception
 	{
 		return new GraphDatabaseSail( graphDb, store );
 	}

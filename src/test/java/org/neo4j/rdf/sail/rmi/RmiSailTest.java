@@ -5,15 +5,15 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 
 import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.index.IndexService;
 import org.neo4j.rdf.sail.BaseSailTest;
 import org.neo4j.rdf.sail.GraphDatabaseSail;
 import org.neo4j.rdf.sail.TestUtils;
 import org.neo4j.rdf.store.CachingLuceneIndexService;
 import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.RdfStoreImpl;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.index.IndexService;
-import org.openrdf.sail.Sail;
+import org.openrdf.sail.NotifyingSail;
 
 public class RmiSailTest extends BaseSailTest
 {
@@ -120,7 +120,7 @@ public class RmiSailTest extends BaseSailTest
     }
 
 	@Override
-	protected Sail createSail() throws Exception
+	protected NotifyingSail createSail() throws Exception
 	{
 		return new RmiSailClient( new URI( RESOURCE_URI ) );
 	}
