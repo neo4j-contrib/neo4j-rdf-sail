@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.rdf.sail.utils.MutatingLogger;
 import org.neo4j.rdf.store.RdfStore;
+import org.neo4j.rdf.store.RdfStoreImpl;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.sail.NotifyingSail;
@@ -37,11 +38,18 @@ public class GraphDatabaseSail implements NotifyingSail {
         Collections.synchronizedMap(
             new HashMap<Integer, GraphDatabaseSailConnectionImpl>() );
     
-    public GraphDatabaseSail(final GraphDatabaseService graphDb, final RdfStore store) {
+    public GraphDatabaseSail(final GraphDatabaseService graphDb, final RdfStore store,
+            boolean shutdownNeo4jInstancesUponShutdown ) {
         this.graphDb = graphDb;
         this.store = store;
+        ((RdfStoreImpl)this.store).setShutdownNeo4jInstancesUponShutdown( 
+                shutdownNeo4jInstancesUponShutdown );
     }
 
+    public GraphDatabaseSail(final GraphDatabaseService graphDb, final RdfStore store) {
+        this( graphDb, store, false );
+    }
+    
     public void setDataDir(final File file) {
         // Not used.
     }
