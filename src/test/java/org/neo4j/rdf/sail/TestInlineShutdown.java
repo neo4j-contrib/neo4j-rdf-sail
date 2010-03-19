@@ -1,5 +1,8 @@
 package org.neo4j.rdf.sail;
 
+import static org.junit.Assert.fail;
+
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.index.IndexService;
@@ -9,13 +12,13 @@ import org.neo4j.rdf.store.RdfStore;
 import org.neo4j.rdf.store.VerboseQuadStore;
 import org.openrdf.sail.Sail;
 
-import junit.framework.TestCase;
-
-public class TestInlineShutdown extends TestCase
+public class TestInlineShutdown
 {
+    @Test
     public void testInlineShutdown() throws Exception
     {
-        GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "target/var-shutdown" );
+        GraphDatabaseService graphDb = new EmbeddedGraphDatabase(
+                "target/var-shutdown" );
         IndexService index = new LuceneIndexService( graphDb );
         RdfStore store = new VerboseQuadStore( graphDb, index );
         Sail sail = new GraphDatabaseSail( graphDb, store, true );
@@ -40,9 +43,11 @@ public class TestInlineShutdown extends TestCase
         }
     }
 
+    @Test
     public void testNormalShutdown() throws Exception
     {
-        GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "target/var-shutdown" );
+        GraphDatabaseService graphDb = new EmbeddedGraphDatabase(
+                "target/var-shutdown" );
         IndexService index = new LuceneIndexService( graphDb );
         RdfStore store = new VerboseQuadStore( graphDb, index );
         Sail sail = new GraphDatabaseSail( graphDb, store );
