@@ -5,26 +5,7 @@ Neo4j RDF SAIL
     <<org.openrdf.sail.Sail>>. To start up neo4j rdf store wrapped in a sail
     you do something like this:
      
----
-	import org.neo4j.graphdb.GraphDatabaseService;
-	import org.neo4j.kernel.EmbeddedGraphDatabase;
-	import org.neo4j.index.IndexService;
-	import org.neo4j.index.lucene.LuceneIndexService;
-	import org.neo4j.rdf.store.RdfStore;
-	import org.neo4j.rdf.store.VerboseQuadStore;
-	import org.neo4j.rdf.sail.GraphDatabaseSail;
-	import org.openrdf.sail.Sail;
-	
-	...
-	
-	GraphDatabaseService graphDb = new EmbeddedGraphDatabase( "path/to/mystore" );
-	IndexService indexService = new LuceneIndexService( graphDb );
-	RdfStore rdfStore = new VerboseQuadStore( graphDb, indexService );
-	Sail sail = new GraphDatabaseSail( graphDb, rdfStore );
----
+%{source-code|snippet=setUpSail|file=src/test/java/examples/SiteExamples.java}
+
     Now, to import data from e.g. files, you can use existing tools like 
     {{{http://www.openrdf.org/doc/rio/api/org/openrdf/rio/rdfxml/RdfXmlParser.html}The RIO RDF parser}}.
-
-	It'd also be nice with a shut down hook of some kind which shuts down
-	the components in the correct order, namely: sail, indexService, graphDb
-	
