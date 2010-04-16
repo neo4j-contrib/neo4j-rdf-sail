@@ -7,5 +7,7 @@ Neo4j RDF SAIL
      
 %{source-code|snippet=setUpSail|file=src/test/java/examples/SiteExamples.java}
 
+	Shutdown should be done in the order: Sail, IndexService, GraphDatabaseService
+
     Now, to import data from e.g. files, you can use existing tools like 
     {{{http://www.openrdf.org/doc/rio/api/org/openrdf/rio/rdfxml/RdfXmlParser.html}The RIO RDF parser}}.

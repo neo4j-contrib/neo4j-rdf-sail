@@ -13,15 +13,16 @@ import org.openrdf.sail.Sail;
 public class SiteExamples
 {
     @Test
-    // START SNIPPET: setUpSail
     public void setUpSail() throws Exception
     {
+        // START SNIPPET: setUpSail
         // Start up the graph database and RDF store and wrap it in a Sail
         GraphDatabaseService graphDb = new EmbeddedGraphDatabase(
                 "target/var/examples" );
         IndexService indexService = new LuceneIndexService( graphDb );
         RdfStore rdfStore = new VerboseQuadStore( graphDb, indexService );
         Sail sail = new GraphDatabaseSail( graphDb, rdfStore );
+        // END SNIPPET: setUpSail
         
         // ...
         
@@ -30,5 +31,4 @@ public class SiteExamples
         indexService.shutdown();
         graphDb.shutdown();
     }
-    // END SNIPPET: setUpSail
 }
