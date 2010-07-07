@@ -19,6 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.index.IndexService;
@@ -1493,6 +1494,7 @@ public abstract class BaseSailTest
         }
     }
 
+    @Ignore
     @Test
     public void testVisibilityOfChanges() throws Exception
     {

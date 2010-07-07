@@ -15,12 +15,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
-import org.neo4j.commons.iterator.CombiningIterable;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.kernel.EmbeddedGraphDatabase;
+import org.neo4j.helpers.collection.CombiningIterable;
 import org.neo4j.kernel.DeadlockDetectedException;
+import org.neo4j.kernel.EmbeddedGraphDatabase;
 import org.neo4j.rdf.fulltext.FulltextIndex;
 import org.neo4j.rdf.fulltext.QueryResult;
 import org.neo4j.rdf.model.CompleteStatement;
