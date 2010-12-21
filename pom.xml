@@ -15,9 +15,9 @@
   <groupId>org.neo4j</groupId>
   <artifactId>neo4j-rdf-sail</artifactId>
   <version>0.6-SNAPSHOT</version>
-  <name>Neo4j RDF SAIL</name>
+  <name>Neo4j - RDF SAIL</name>
   <description>A Neo4j RDF Sesame Storage and Inference Layer</description>
-  <url>http://components.neo4j.org/${project.artifactId}/</url>
+  <url>http://components.neo4j.org/${project.artifactId}/${project.version}</url>
 
   <scm>
     <connection>scm:svn:https://svn.neo4j.org/components/${short-name}/trunk/</connection>
@@ -143,4 +143,13 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <distributionManagement>
+    <site>
+      <id>neo4j-site</id>
+      <url>scpexe://components.neo4j.org/home/neo/components/${project.artifactId}/${project.version}</url>
+    </site>
+  </distributionManagement>
+
 </project>
+
